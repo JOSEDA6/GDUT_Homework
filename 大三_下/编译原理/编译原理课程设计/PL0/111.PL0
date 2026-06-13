@@ -1,0 +1,12 @@
+PROGRAM 111;
+VAR A, B;
+BEGIN
+  A := 10;
+  B := 2;
+  
+  A *= 3;  // A = 10 * 3 = 30
+  B /= 2;  // B = 2 / 2 = 1
+  
+  WRITE(A);
+  WRITE(B);
+END.

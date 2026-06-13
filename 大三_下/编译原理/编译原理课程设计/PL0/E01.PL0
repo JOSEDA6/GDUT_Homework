@@ -1,0 +1,8 @@
+PROGRAM E01;
+VAR I;
+BEGIN
+  I := 0;
+  FOR I := 1 STEP 1 UNTIL 5 DO
+    WRITE(I * 2);
+  WRITE(99);
+END.

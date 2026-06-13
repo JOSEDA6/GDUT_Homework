@@ -1,0 +1,16 @@
+PROGRAM EX01;
+VAR A,B,C;
+BEGIN
+  /=;
+  *=;
+  &;
+  |;
+  !;
+  ELSE;
+  FOR;
+  STEP;
+  UNTIL;
+  DO;
+  RETURN;
+  
+END.

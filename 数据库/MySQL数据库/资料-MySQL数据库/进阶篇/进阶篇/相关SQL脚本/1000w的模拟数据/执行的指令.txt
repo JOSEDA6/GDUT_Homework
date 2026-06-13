@@ -1,0 +1,11 @@
+load data local infile '/root/sql/tb_sku1.sql' into table `tb_sku` fields terminated by ',' lines terminated by '\n';
+
+
+
+
+
+
+注意 : 
+	由于1000w的数据量较大 , 如果直接加载1000w , 会非常耗费CPU及内存 ; 
+	
+	已经拆分为5个部分 , 每一个部分为200w数据 , load 5次即可 ;

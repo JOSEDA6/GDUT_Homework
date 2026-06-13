@@ -1,0 +1,290 @@
+$(function(){
+    $(".documentAiDiv .copyBtn").on("click", function(){
+        var textToCopy = $("#document_content_0").text();
+        var copyInput = document.createElement('input');
+        document.body.appendChild(copyInput);
+        copyInput.setAttribute('value', textToCopy);
+        copyInput.select();
+        document.execCommand("Copy");
+        copyInput.remove();
+
+        $.toast({type: 'success', content: "复制成功"});
+    });
+});
+
+function setTab(cursel){
+    if (0 === cursel) {
+        $(".ai-anaysis-full").hide();
+    } else {
+        $(".ai-anaysis-full").show();
+    }
+    for(i=0;i<=2;i++){
+        var menu=document.getElementById("navi_"+i);
+        var con=document.getElementById("con_navi_"+i);
+        menu.className=i==cursel?"licur":"";
+        con.style.display=i==cursel?"block":"none";
+
+        $("#loading_" + i).show();
+        $("#analyLose_" + i).hide();
+        $("#document_content_" + i).hide();
+
+        if(0 === cursel) {
+            $("#document_content_0").text("");
+        } else {
+            $("#document_content_" + index).attr("src", "");
+        }
+    }
+
+    openAiBrainMap(cursel);
+}
+
+//弹窗滚动条
+function MoveScroll2(){//移动到
+    $("#popMove_scroll").niceScroll({cursorborder:"",cursorwidth:8,cursorcolor:"#CAD5E6",boxzoom:false,autohidemode:true});
+    $("#popMove_scroll").getNiceScroll().resize(); //检测滚动条是否重置大小（当窗口改变大小时）
+}
+
+function showDocumentAi() {
+    var documentAiDiv = $('.documentAiDiv');
+    documentAiDiv.fullFadeIn();
+    documentAiDiv.addClass('maskFadeOut');
+    $('body').addClass('popOverflow');
+    MoveScroll2();
+    MoveFixed();
+}
+
+function openDocumentDiv(objectId,id) {
+    $("#documentObjectId").val(objectId);
+    $("#documentDataId").val(id);
+    $("#documentSummary").text("");
+    setTab(0);
+}
+function fullAiConDiv() {
+    var index = $(".insTabul li.licur").index();
+    var fullIframe = $("#con_navi_" + index).find("iframe")[0];
+    screenfull.toggle(fullIframe);
+}
+function showDocumentInfo(type,data) {
+    var contentDiv = $("#document_content_" + type);
+    if(0 === type) {
+        $("#document_content_0").text(data);
+    } else {
+        if (data.indexOf("index.html#") > -1) {
+            var dateStamp = new Date().getTime();
+            data = data.replace("index.html#", "index.html?v=" + dateStamp + "#");
+        }
+        contentDiv.attr("src", data);
+    }
+
+    $("#loading_" + type).hide();
+    contentDiv.show();
+    showDocumentAi();
+}
+
+function showErrorDocumentInfo(type) {
+    var contentDiv = $("#document_content_" + type);
+    if(0 === type) {
+        $("#document_content_0").text("");
+    } else {
+        contentDiv.attr("src", "");
+        $(".ai-anaysis-full").hide();
+    }
+
+    $("#loading_" + type).hide();
+    $("#analyLose_" + type).show();
+}
+
+var brainCache = [];
+var documentInfo = {};
+var docType = {};
+function openAiBrainMap(type) {
+    var objectId = $("#documentObjectId").val();
+    var showAiBrainMap = $("#showAiBrainMap").val();
+    var useBigModelAnalysis = $("#useBigModelAnalysis").val();
+    var aiVideoInterpret = $("#aiVideoInterpret").val();
+    if(typeof showAiBrainMap !== "undefined" && showAiBrainMap == "true" && typeof useBigModelAnalysis != "undefined" && useBigModelAnalysis == "true" && typeof aiVideoInterpret != "" && aiVideoInterpret == "1" && typeof documentInfo[objectId] != "undefined") {
+        var objInfo = documentInfo[objectId];
+        if (type == 0) {
+            var url = objInfo["summary"].data;
+            showDocumentInfo(type, url);
+        } else if (type == 1) {
+            var url = objInfo["mindmap"].data;
+            showDocumentInfo(type, url);
+        } else if (type == 2) {
+            var url = objInfo["wordcloud"].data;
+            showDocumentInfo(type, url);
+        }
+        return;
+    }
+    var documentDataId = $("#documentDataId").val();
+    try {
+        for (var i=0;i< brainCache.length; i++) {
+            var info = brainCache[i];
+            if (info.objectId == objectId && info.type == type) {
+                var url = info.url;
+                showDocumentInfo(type, url);
+                return;
+            }
+        }
+
+        var ut = $("#ut").val();
+        var classId = $("#classId").val();
+        var courseId = $("#courseid").val();
+        $.ajax({
+            type : "get",
+            url : "/mooc2-ans/query-brain-map",
+            dataType: "json",
+            data : {
+                courseId : courseId,
+                dataId : documentDataId,
+                type: type,
+                ut:ut,
+                clazzId:classId
+            },
+
+            success : function(data) {
+                if(data.status) {
+                    var url = data.data;
+                    var info = {
+                        objectId:objectId,
+                        url: url,
+                        type: type
+                    }
+
+                    brainCache.push(info);
+                    showDocumentInfo(type, url);
+                } else {
+                    showErrorDocumentInfo(type);
+                    $.toast({type: 'failure', content: data.msg});
+                }
+            },
+            error : function(data) {
+                showErrorDocumentInfo(type);
+            }
+        });
+    }catch (ex) {
+        console.log(ex);
+    }
+}
+
+var supportType = ["pdf","doc","docx"];
+
+function checkAiBrainMapNew() {
+    try {
+        var dataIdArray = [];
+        $(".dataBody_td").each(function () {
+            var type = $(this).attr("type");
+            var dataId = $(this).attr("id");
+            var objectId = $(this).attr("objectId");
+
+            if(supportType.includes(type.toLowerCase())) {
+                dataIdArray.push(dataId);
+                docType[objectId] = "." + type;
+            }
+        })
+
+        if(dataIdArray.length == 0) {
+            return
+        }
+
+        var ut = $("#ut").val();
+        var classId = $("#classId").val();
+        var courseId = $("#courseid").val();
+        $.ajax({
+            type : "post",
+            url : "/mooc2-ans/query-brain-map-model",
+            dataType: "json",
+            data : {
+                "courseId" : courseId,
+                "dataIds": dataIdArray.join(","),
+                "ut":ut,
+                "clazzId":classId
+            },
+
+            success : function(data) {
+                if(data.status) {
+                    var list = data.data;
+                    for (var i = 0; i < list.length; i++) {
+                        var objId = list[i].objectId;
+                        var objData = list[i].data;
+                        if (!objData) {
+                            continue;
+                        }
+                        var summary = objData.summary;
+                        var mindMap = objData.mindmap;
+                        var wordcloud = objData.wordcloud;
+                        if ((docType[objId] != ".pdf" && !(summary["mark"] == 2 && mindMap["mark"] == 2 && wordcloud["mark"] == 2)) || (docType[objId] == ".pdf"&& summary["mark"] != 2 && mindMap["mark"] != 2)) {
+                            continue;
+                        }
+                        documentInfo[objId] = objData;
+                        $(".dataBody_td").each(function ()  {
+                            var type = $(this).attr("type");
+                            if(supportType.includes(type.toLowerCase())) {
+                                var objectId = $(this).attr("objectid");
+                                if(typeof documentInfo[objectId] != "undefined") {
+                                    $(this).find(".ai-anaysis-btn").show();
+                                }
+                            }
+                        });
+                    }
+                }
+            },
+            error : function(data) {
+            }
+        });
+    }catch (ex) {
+        console.log(ex);
+    }
+};
+function checkAiBrainMap() {
+    try {
+        var dataIdArray = [];
+        $(".dataBody_td").each(function () {
+            var type = $(this).attr("type");
+            var dataId = $(this).attr("id");
+
+            if(supportType.includes(type.toLowerCase())) {
+                dataIdArray.push(dataId);
+            }
+        })
+
+        if(dataIdArray.length == 0) {
+            return
+        }
+
+        var ut = $("#ut").val();
+        var classId = $("#classId").val();
+        var courseId = $("#courseid").val();
+        $.ajax({
+            type : "post",
+            url : "/mooc2-ans/all-file-status",
+            dataType: "json",
+            data : {
+                "courseId" : courseId,
+                "dataIds": dataIdArray.join(","),
+                "ut":ut,
+                "clazzId":classId
+            },
+
+            success : function(data) {
+                if(data.status) {
+                    var list = data.data;
+
+                    $(".dataBody_td").each(function ()  {
+                        var type = $(this).attr("type");
+                        if(supportType.includes(type.toLowerCase())) {
+                            var objectId = $(this).attr("objectid");
+                            if(list.indexOf(objectId) > -1) {
+                                $(this).find(".ai-anaysis-btn").show();
+                            }
+                        }
+                    });
+                }
+            },
+            error : function(data) {
+            }
+        });
+    }catch (ex) {
+        console.log(ex);
+    }
+}

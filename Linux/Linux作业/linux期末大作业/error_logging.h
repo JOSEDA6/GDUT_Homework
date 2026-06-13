@@ -1,0 +1,1 @@
+void log_error(const char *cmd, const char *error_msg);

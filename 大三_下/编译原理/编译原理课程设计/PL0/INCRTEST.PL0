@@ -1,0 +1,12 @@
+PROGRAM INCRTEST;
+VAR A, B;
+BEGIN
+  A := 5; 
+  B := ++A;  
+  WRITE(A);
+  WRITE(B);
+
+  B := A--;  
+  WRITE(A);
+  WRITE(B);
+END.

@@ -1,0 +1,797 @@
+function bulidPageNum() {
+	var datalistSize = $("#datalistSize").val();
+	var currentPageNo = $("#currentPageNo").val();
+	var totalPage = $("#totalPage").val();
+
+	if(datalistSize){
+		page.showPage(Number(currentPageNo),Number(totalPage), "course_change", "首页", "尾页")
+	}
+
+    var showAiBrainMap = $("#showAiBrainMap").val();
+    var useBigModelAnalysis = $("#useBigModelAnalysis").val();
+    var aiVideoInterpret = $("#aiVideoInterpret").val();
+    if(showAiBrainMap == "true") {
+        if (typeof useBigModelAnalysis != "undefined" && useBigModelAnalysis == "true" && typeof aiVideoInterpret != "undefined" && aiVideoInterpret == "1") {
+            checkAiBrainMapNew()
+        } else {
+            checkAiBrainMap();
+        }
+    }
+}
+
+function closeDeleteWindow (thisDiv) {
+	$('.maskDiv').fullFadeOut();
+	$('.maskDiv').removeClass('maskFadeOut');
+	$('body').removeClass('popOverflow');
+
+	if(typeof thisDiv != "undefined" && thisDiv.hasClass("YPShowDiv")) {
+        $(".popGroupShowHide #popGroup_scroll").empty();
+    }
+}
+
+var verify = function () {
+	var dataName = $.trim($(".dataSearch_input").val());
+
+	if (dataName === "") {
+		firstPage();
+		return false;
+	}
+    searchPageByDataName();
+};
+
+//弹窗居中
+function MoveFixed(){
+	$('.popMove').css({top:function(){
+			return ($(window).height()-$(this).height())/2;
+		},left:function(){
+			return ($(window).width()-$(this).width())/2;
+		}
+	});
+}
+
+//文件夹跳转
+function changeFolder(courseId, dataName, dataId, classId, enc, t) {
+    var ut = $("#ut").val();
+    var microTopicId = $("#microTopicId").val();
+    if(ut === undefined){
+        ut = "s";
+    }
+    var idArray = [];
+    $(".subtitleId").each(function() {
+        if (this.id === dataId+"") {
+            return false;
+        }
+		idArray.push(this.id);
+    });
+
+    var parent = idArray.join(",");
+    try {
+        dataName = encodeURIComponent(dataName);
+    }catch (e) {
+    }
+    var jumpUrl = "/mooc2-ans/coursedata/stu-datalist?courseid=" + courseId + "&dataName="
+        + dataName + "&dataId=" + dataId + "&type=1&parent=" + parent
+        + "&clazzid=" + classId + "&enc=" + enc + "&ut=" + ut +"&t="+t + "&microTopicId=" + microTopicId;
+    reloadPage(jumpUrl);
+}
+
+var previewType = ["ppt", "pptx", "pdf", "doc", "docx", "avi", "rmvb", "3gp",
+	"mpg", "mpeg", "mov", "wmv", "asf", "mkv", "mp4", "vob", "f4v", "flv","txt","mp3","MP3","xls", "xlsx", "m4a", "M4A"];
+
+function downloadfile(filepath) {
+    // 创建一个 form
+    var form1 = document.createElement("form");
+    form1.id = "form1";
+    form1.name = "form1";
+    // 添加到 body 中
+    document.body.appendChild(form1);
+    // form 的提交方式
+    form1.method = "POST";
+    // form 提交路径
+    form1.action = filepath;
+    form1.target = "_blank";
+    // 对该 form 执行提交
+    form1.submit();
+    // 删除该 form
+    document.body.removeChild(form1);
+}
+
+//查看文件夹内资源
+function showDetail(courseId, dataName, dataId, flag, classId, enc,t) {
+    var ut = $("#ut").val();
+    var cpi = $("#cpi").val();
+    var microTopicId = $("#microTopicId").val();
+    if(ut === undefined){
+        ut = "s";
+    }
+
+    var idArray = [];
+    $('.subtitleId').each(function() {
+		idArray.push(this.id);
+    });
+
+    var parent = idArray.join(",");
+    try {
+        dataName = encodeURIComponent(dataName);
+    }catch (e) {
+    }
+    var jumpUrl = "/mooc2-ans/coursedata/stu-datalist?courseid=" + courseId + "&dataName="
+        + dataName + "&dataId=" + dataId + "&type=1&parent="
+        + parent + "&flag=" + flag + "&clazzid=" + classId + "&enc=" + enc +"&ut="+ut+"&cpi="+cpi+"&t="+t + "&microTopicId=" + microTopicId;
+    reloadPage(jumpUrl);
+}
+
+function pictureView(objId) {
+	var downpath = $("#downpath").val();
+    $("#picturePreview img").attr("src", downpath + objId);
+    openPreviewPictureDiv();
+}
+
+function putSubForm(param, action) {
+    $("#subForm").attr("target", "_blank");
+    $("#subForm").attr("action", action);
+    $("#subParam").html(param);
+    $("#subForm").submit();
+}
+
+function existType(type, arrayName) {
+	for (var i = 0; i < arrayName.length; i++) {
+		if (arrayName[i] === type) {
+			return true;
+		}
+	}
+	return false;
+}
+
+function viewOtherSource(dataId,dataType,courseId,classId,ut,cpi,url) {
+    if(dataType === "note" || dataType === "topic" || dataType === "notice" || dataType === "live") {
+        saveViewCount(dataId);
+        if(ut !== "t" && dataType === "note") {
+            var previewUrl = "/mooc2-ans/coursedata/preview-coursedata?dataId="+dataId+"&courseId="+courseId+"&classId="+classId+"&ut="+ut+"&cpi="+cpi+"&from="+$("#from").val();
+            window.open(previewUrl);
+        }else {
+            window.open(url);
+        }
+    }else if(typeof dataType == "undefined" || dataType === "") {
+        saveViewCount(dataId);
+        var previewUrl = "/mooc2-ans/coursedata/preview-coursedata?dataId="+dataId+"&courseId="+courseId+"&classId="+classId+"&ut="+ut+"&cpi="+cpi;
+        window.open(previewUrl);
+    }else if(dataType && dataType.toLowerCase() === "m4a") {
+        saveViewCount(dataId);
+        intPreviewDiv(dataId, dataType);
+    }
+}
+
+// wps 预览
+function openWpsPreview(courseId, classId, dataId, ut) {
+    $.ajax({
+        type: "get",
+        url: "/mooc2-ans/coursedata/getWpsPreview",
+        data: {
+            "courseId": courseId,
+            "classId": classId,
+            "dataId": dataId,
+            "ut": ut,
+        },
+        success: function (data) {
+            var obj = JSON.parse(data);
+            if (obj.status) {
+                var wpsUrl = obj.wpsUrl;
+                window.open(wpsUrl);
+            } else {
+                $.toast({type: 'failure', content: I18N_Config.courseDataToast16});
+            }
+        },
+        error: function (data) {
+            $.toast({type: 'failure', content: I18N_Config.courseDataToast16});
+        }
+    });
+}
+
+//资料点击事件
+function toOpen(dataName, dataType, dataId, loadurl, objectId, url, flag,
+                source, classId, enc, videoType,t,bookEnc) {
+    dataName = decodeURIComponent(dataName);
+    var cpi = $("#cpi").val();
+    var ut = $("#ut").val();
+    if (typeof (cpi) == 'undefined' || cpi == null || cpi == '') {
+        cpi = 0;
+    }
+    var courseId = $("#courseid").val();
+
+    var isCdCustomCourseIds = $("#isCdCustomCourseIds").val();
+    if (isCdCustomCourseIds && isCdCustomCourseIds == "true" && (dataType === "ppt" || dataType === "pptx" || dataType === "pdf")) {
+        openWpsPreview(courseId, classId, dataId, "s");
+        return;
+    }
+    
+    if (flag === 1 && dataType !== "afolder") {
+        if (objectId && objectId.length > 0 && (existType(dataType, previewType || dataType == "book"))) {
+            // 可预览文件再次转码校验
+            courseDataIsPreviewCheck(dataType, dataId, loadurl, objectId, flag, source,courseId);
+        }
+        viewOtherSource(dataId,dataType,courseId,classId,ut,cpi,url);
+    } else {
+        if (dataType === "afolder") {
+           showDetail(courseId, dataName, dataId, 0, classId, enc,t);
+        } else if (dataType === "jpg" || dataType === "png" || dataType === "gif" || dataType === "jpeg") {
+            saveViewCount(dataId);
+            pictureView(objectId);
+        } else {
+            if ((loadurl.length > 0 && objectId.length === 0 && dataId > 0 && dataType === 'doc')
+                || (source === 1 && loadurl.length > 0)) {
+                saveViewCount(dataId);
+                param = "<input type=\"hidden\" name=\"realType\" value=\"html\"/><input type=\"hidden\" name=\"dataId\" value=\""
+                    + dataId + "\"/>";
+                putSubForm(param, ServerHost.mooc1Domain+"/coursedata/toPreview");
+            } else if (dataType === "url" || dataType === "zt_chapter" || dataType === "swift_course"  || dataType === "topic") {
+				saveViewCount(dataId);
+                window.open(url);
+            } else if (dataType === "periodical" || dataType === "note") {
+                saveViewCount(dataId);
+                var from = $("#from").val();
+                window.open(url + "&_from_=" + from);
+            }else if (dataType === "book") {
+				saveViewCount(dataId);
+                window.open("/mooc2-ans/book/read?ssid=" + objectId + "&courseId="
+                    + courseId + "&classId=" + classId + "&enc=" + bookEnc);
+            } else if (dataType === "video") {
+                saveViewCount(dataId);
+                if (videoType === 1) {
+                    window.open(ServerHost.mooc1Domain+"/video/upload/play?courseId=" + courseId
+                        + "&ztId=" + objectId + "&ztTitle=" + dataName
+                        + "&videoId=" + dataId);
+                } else {
+                    window.open(ServerHost.mooc1Domain+"/video/play?courseId=" + courseId + "&ztId="
+                        + objectId + "&ztTitle=" + dataName + "&videoId="
+                        + dataId);
+                }
+            } else if (dataType === "svideo") {
+                saveViewCount(dataId);
+                if (videoType === 1) {
+                    window.open(ServerHost.mooc1Domain+"/video/upload/play?courseId=" + courseId
+                        + "&ztId=" + objectId + "&ztTitle=" + dataName
+                        + "&videoId=" + dataId);
+                } else {
+                    window.open(ServerHost.mooc1Domain+"/video/newplay?courseId=" + courseId
+                        + "&ztId=" + objectId + "&ztTitle=" + dataName
+                        + "&videoId=" + dataId);
+                }
+            } else if (dataType === "ZT") {
+				saveViewCount(dataId);
+                var from = $("#from").val();
+                window.open(ServerHost.mooc1Domain+"/course/" + objectId + ".html?_from_=" + from);
+            } else if (objectId.length > 0 && existType(dataType, previewType)) {
+                
+				saveViewCount(dataId);
+				intPreviewDiv(dataId, dataType);
+            } else if(typeof dataType == "undefined" || dataType === "") {
+                saveViewCount(dataId);
+                var previewUrl = "/mooc2-ans/coursedata/preview-coursedata?dataId="+dataId+"&courseId="+courseId+"&classId="+classId+"&ut="+ut+"&cpi="+cpi;
+                window.open(previewUrl);
+            }
+        }
+    }
+}
+
+function intPreviewDiv(dataId, dataType) {
+    var cpi = $("#cpi").val();
+    var clazzid = $("#clazzid").val();
+    var courseid = $("#courseid").val();
+
+	$.ajax({
+		type : "get",
+		url : "/mooc2-ans/coursedata/get-preview-url",
+		data : {
+			"dataId": dataId,
+            "cpi": cpi,
+            "clazzid": clazzid,
+            "ut": "s",
+            "courseid":courseid
+		},
+
+		success : function(data) {
+			var obj = JSON.parse(data);
+			if(obj.status) {
+				var popGroupScrollDiv = $(".popGroupShowHide #popGroup_scroll");
+				popGroupScrollDiv.empty();
+				var url= obj.url;
+                if(url && window.location.protocol=="https:"){
+                    url = url.replace("http://", window.location.protocol+"//");
+                }
+				url = encodeURI(url);
+				if(dataType && (dataType.toLowerCase() === "mp3" || dataType.toLowerCase() === "m4a")) {
+					$(".popGroupShowHide").find(".groupCon").attr("style","width:362px");
+					var html = "<iframe scrolling=\"auto\" allowfullscreen=\"true\" allowtransparency=\"true\" id=\"layui-layer-iframe2\" name=\"layui-layer-iframe2\" onload=\"this.className='';\" " +
+						"class=\"\" frameborder=\"0\" src=\""+url+"\" style=\"height: 424px; width: 362px;\"></iframe>";
+					popGroupScrollDiv.append(html);
+				}else {
+					$(".popGroupShowHide").find(".groupCon").attr("style","");
+					var html= "<iframe scrolling=\"auto\" allowfullscreen=\"true\" allowtransparency=\"true\" id=\"layui-layer-iframe2\" " +
+						"name=\"layui-layer-iframe2\" onload=\"this.className='';\" class=\"\" frameborder=\"0\" " +
+						"src=\""+url+"\" style=\"height: 580px; width: 1120px;\">";
+					popGroupScrollDiv.append(html);
+				}
+
+				$('.popGroupShowHide').fullFadeIn();
+				$('.popGroupShowHide').addClass('maskFadeOut');
+				$('body').addClass('popOverflow')
+			}else {
+				$.toast({type: 'failure', content: I18N_Config.courseDataToast16});
+			}
+		},
+		error : function(data) {
+			$.toast({type: 'failure', content: I18N_Config.courseDataToast16});
+		}
+	});
+}
+
+//资料下载
+function downloadData() {
+	var courseId = $("#courseid").val();
+    var dataId = $(this).parents('.dataBody_td').attr("id")+"--";
+
+	window.location.href = "/mooc2-ans/coursedata/download?dataId=" + dataId + "&courseId="
+		+ courseId;
+}
+
+
+//初始化我的收藏模态框
+var index = 0;
+
+function SaveScroll(){//保存到
+    $("#popSave_scroll").niceScroll({cursorborder:"",cursorwidth:8,cursorcolor:"#CAD5E6",boxzoom:false,autohidemode:true});
+    $("#popSave_scroll").getNiceScroll().resize(); //检测滚动条是否重置大小（当窗口改变大小时）
+}
+
+
+//是否有选中的文件
+function getSelectStatus() {
+	var hasSelect = false;
+	$(".dataBody_check").each(function () {
+		if($(this).hasClass('dataBody_checked')){
+			hasSelect =true;
+			return false;
+		}
+	});
+
+	return hasSelect;
+}
+
+//选中的文件中是否有文件夹
+function selectFolderStatus() {
+    var hasFolder = false;
+    $(".dataBody_check").each(function () {
+        //是否选中，是否有文件夹，是否包含不支持下载的文件
+        if($(this).hasClass('dataBody_checked') && ($(this).parent().find("#folderTypeId").length > 0 || !checkDownload(this))){
+            hasFolder =true;
+            return false;
+        }
+    });
+
+    return hasFolder;
+}
+
+//动态显示删除，下载，移动到等按钮
+function checkTopBarList() {
+    //是否选中
+    var selected = getSelectStatus();
+    //是否选中了文件夹
+    var selectedFolder = selectFolderStatus();
+	if(selected) {
+		$("#topDivBar").attr("style", "display:block");
+	}else {
+		$("#topDivBar").attr("style", "display:none");
+	}
+
+	//如果选中但是没有选中文件夹，则显示批量下载按钮
+    if(selected && !selectedFolder) {
+        $(".batchDownloadBar").attr("style", "display:block");
+        $(".batchDownloadBarDisable").attr("style", "display:none");
+    }else {
+        $(".batchDownloadBar").attr("style", "display:none");
+        $(".batchDownloadBarDisable").attr("style", "display:block");
+    }
+}
+
+//保存到pop
+function openPopSaveShowHideDiv(name, objectid, dataId, dataType){
+    try {
+        name = decodeURIComponent(name)
+    } catch (e) {
+    }
+    $(".popSaveShowHide").attr("name", name);
+	$(".popSaveShowHide").attr("objectid",objectid);
+	$(".popSaveShowHide").attr("dataId",dataId);
+	$(".popSaveShowHide").attr("dataType",dataType);
+	$(".popSaveShowHide .popMove_module .popMove_list .popMove_putit").empty();
+	// $("#popSaveShowHide_enter_disable").attr("style", "display:block");
+	// $("#popSaveShowHide_enter").attr("style", "display:none");
+
+	$('.popSaveShowHide').fullFadeIn();
+	$('.popSaveShowHide').addClass('maskFadeOut');
+	$('body').addClass('popOverflow');
+	SaveScroll();
+	MoveFixed();
+	openCopyDiv(0);
+}
+//保存到pop
+function openCopyDiv(fldid, thisObj){
+    if(thisObj) {
+        var length = $(thisObj).find("ul .popMove_name").length;
+        if(length>0) {
+            return;
+        }
+    }
+
+    var courseId = $("#courseid").val();
+    $.ajax({
+        type: "get",
+        url : "/mooc2-ans/coursedata/cloud-disk-list",
+        data: {
+            "fldid": fldid,
+            "courseId": courseId
+        },
+        success: function (data) {
+            var json =  eval('(' + data.replace(/:\s*(\d{16,})(?=\s*[,\}])/g,":\"$1\"") + ')');
+            if(!json.result) {
+                $.toast({type: 'failure', content: I18N_Config.courseDataToast30});
+                return;
+            }
+            if(fldid===0) {
+                buildRootCloudDiskDiv(json);
+            }else {
+                buildCloudDiskDiv(json, thisObj);
+            }
+        },
+        error: function (data) {
+            $.toast({type: 'failure', content: I18N_Config.courseDataToast30});
+        }
+    });
+}
+
+
+function buildRootCloudDiskDiv(json) {
+    var rootDiv = "<div class=\"popMove_name popMove_active\" id='" + json.curDir + "'><img src=\"/mooc2-ans/images/coursedata/file.png\"/><span class=\"popMove_text\">根目录</span></div>";
+    var divObj = $(".popSaveShowHide .popMove_module .popMove_list .popMove_putit");
+
+    divObj.append(rootDiv);
+
+    if (json.data.length > 0) {
+        divObj.append("<ul class=\"popMove_item\" ></ul>");
+    }
+
+    json.data.forEach(function (model) {
+        if (!model.isempty) {
+            var hasSubHtml = "<li class=\"popMove_putit\" onclick='openCopyDiv(\""+model.resid+"\",this)'>\n" +
+                "<div class=\"popMove_name\" id='" + model.resid + "'><img src=\"/mooc2-ans/images/coursedata/file.png\"/><span class=\"popMove_text\">" + model.name + "</span></div></li>";
+            divObj.find(".popMove_item").append(hasSubHtml);
+        } else {
+            var noSubHtml = "<li><div class=\"popMove_name\" id='" + model.resid + "'><img src=\"/mooc2-ans/images/coursedata/file.png\"/><span class=\"popMove_text\">" + model.name + "</span></div></li>";
+            divObj.find(".popMove_item").append(noSubHtml);
+        }
+    });
+}
+function buildCloudDiskDiv(json, thisObj) {
+    var thisDvi = $(thisObj);
+    if (json.data.length > 0) {
+        thisDvi.append("<ul class=\"popMove_item\" ></ul>");
+    }
+    json.data.forEach(function (model) {
+        if(!model.isempty) {
+            var hasSubHtml = "<li class=\"popMove_putit\" onclick='openCopyDiv(\""+model.resid+"\",this)'>\n" +
+                "<div class=\"popMove_name\" id='"+model.resid+"'><img src=\"/mooc2-ans/images/coursedata/file.png\"/><span class=\"popMove_text\">"+model.name+"</span></div></li>";
+            thisDvi.find(".popMove_item").append(hasSubHtml);
+        } else {
+            var noSubHtml = "<li><div class=\"popMove_name\" id='"+model.resid+"'><img src=\"/mooc2-ans/images/coursedata/file.png\"/><span class=\"popMove_text\">"+model.name+"</span></div></li>";
+            thisDvi.find(".popMove_item").append(noSubHtml);
+        }
+    });
+}
+
+function submitCopyToCloudDisk() {
+    var id =$(".popSaveShowHide .popMove_active").attr("id");
+    if(!id || $.trim(id) === "") {
+        $.toast({type: 'failure', content: I18N_Config.courseDataToast43});
+        return;
+    }
+
+    var name = $(".popSaveShowHide").attr("name");
+    var objectid = $(".popSaveShowHide").attr("objectid");
+    var dataId = $(".popSaveShowHide").attr("dataId");
+    var dataType = $(".popSaveShowHide").attr("dataType");
+    var courseId = $("#courseid").val();
+    var classid = $("#classId").val();
+    var cpi = $("#cpi").val();
+
+    $.ajax({
+        type: "post",
+        url : "/mooc2-ans/coursedata/copy-to-cloud-disk",
+        data: {
+            "name": name,
+            "objectid": objectid,
+            "dataId":dataId,
+            "dataType":dataType,
+            "fldid": id,
+            "courseid":courseId,
+            "cpi":cpi,
+            "clazzid":classid,
+            "ut":"s"
+        },
+        success: function (data) {
+            if (data === "true") {
+                $.toast({type: 'success', content: I18N_Config.addSuc});
+                var currentPageNum = $("#pages").val();
+                course_change(currentPageNum);
+            } else {
+                $.toast({type: 'failure', content: I18N_Config.courseDataToast44});
+            }
+            closeDeleteWindow();
+        },
+        error: function (data) {
+            closeDeleteWindow();
+            $.toast({type: 'failure', content: I18N_Config.courseDataToast44});
+        }
+    });
+}
+
+function checkAllSelectButton() {
+    var unselected =  false;
+    $(".dataBody_check").each(function () {
+        if(!$(this).hasClass('dataBody_checked')){
+            unselected = true;
+            return false;
+        }
+    });
+
+    var dataBodyCheckObj= $(".dataHead_check");
+    if(unselected) {
+        if(dataBodyCheckObj.hasClass('dataHead_checked')){
+            dataBodyCheckObj.removeClass('dataHead_checked');
+            dataBodyCheckObj.find(":checkbox").prop("checked", false);
+        }
+    }else {
+        if(!dataBodyCheckObj.hasClass('dataHead_checked')){
+            dataBodyCheckObj.addClass('dataHead_checked');
+            dataBodyCheckObj.find(":checkbox").prop("checked", true);
+        }
+    }
+}
+
+var viewer;
+function openPreviewPictureDiv(){
+	$('.viewBtnWrap').fullFadeIn();
+	var  picturePreview = $("#picturePreview");
+	picturePreview.viewer({
+		navbar:false,
+		url: 'data-orignal',
+		title:false,
+		toolbar:false
+	});
+	viewer = picturePreview.data('viewer');
+	viewer.show();
+}
+
+function setSelectTip() {
+	var totalSelect = 0;
+	var selectTipElement = $("#selectTip");
+
+	$(".dataBody_check").each(function () {
+		if($(this).hasClass('dataBody_checked')){
+			totalSelect += 1;
+		}
+	});
+
+	selectTipElement.empty();
+	if(totalSelect > 0) {
+		selectTipElement.attr("style", "display:block");
+		selectTipElement.append(I18N_Config.haveCheck + "<span class=\"num\">"+totalSelect+"</span>" + I18N_Config.individual + "，");
+	}else {
+		selectTipElement.attr("style", "display:none");
+	}
+}
+
+function getSelectColumnNum() {
+	var totalSelect =0;
+	$(".dataBody_check").each(function () {
+		if($(this).hasClass('dataBody_checked')){
+			totalSelect += 1;
+		}
+	});
+
+	return totalSelect;
+}
+
+function course_change(pageno) {
+	var courseId = $("#courseid").val();
+	var classId = $("#classId").val();
+	var search = $("#search").val();
+	var dataName = $("#dataName").val();
+	var orders = $("#orders").val();
+	var cpi = $("#cpi").val();
+	var enc = $("#enc").val();
+	var t = $("#t").val();
+	var dataId = $("#dataId").val();
+	var microTopicId = $("#microTopicId").val();
+    var url = "";
+    try {
+        dataName = encodeURIComponent(dataName);
+    }catch (e) {
+    }
+	if(search) {
+        url = "/mooc2-ans/coursedata/search-stu?courseId=" + courseId + "&classId=" + classId + "&pages=" + pageno + "&dataName="+dataName+"&order="+orders+"&enc="+enc+"&cpi="+cpi+"&t="+t + "&microTopicId=" + microTopicId;
+	} else{
+        url = "/mooc2-ans/coursedata/stu-datalist?courseid=" + courseId + "&clazzid=" + classId + "&pages=" + pageno + "&type=1&dataName="+dataName+"&dataId="+dataId+"&order="+orders+"&enc="+enc+"&cpi="+cpi+"&t="+t + "&microTopicId=" + microTopicId;
+	}
+	reloadPage(url);
+}
+
+
+/**
+ * 排序
+ * @param orderName
+ * @param orderType
+ */
+function courseDataOrder(orderName, orderType, _this
+) {
+    if (orderType == "up") {
+        $(_this).removeClass("sort_down");
+        $(_this).addClass("sort_up");
+    } else {
+        $(_this).removeClass("sort_up");
+        $(_this).addClass("sort_down");
+    }
+	var courseid = $("#courseid").val();
+	var clazzid = $("#clazzid").val();
+	var cpi = $("#cpi").val();
+	var enc = $("#enc").val();
+	var ut =$("#ut").val();
+	var dataName = $("#dataName").val();
+	var dataId = $("#dataId").val();
+	var parent = $("#parent").val();
+	var flag = $("#flag").val();
+	var edit = $("#edit").val();
+	var openc = $("#openc").val();
+	var t = $("#t").val();
+	var microTopicId = $("#microTopicId").val();
+    try {
+        dataName = encodeURIComponent(dataName);
+    }catch (e) {
+    }
+    var url = "/mooc2-ans/coursedata/stu-datalist?courseid=" + courseid + "&clazzid=" + clazzid + "&cpi=" + cpi + "&enc=" + enc + "&ut=" + ut + "&dataName=" + dataName + "&dataId=" + dataId + "&parent=" + parent + "&flag=" + flag + "&edit=" + edit + "&openc=" + openc + "&t=" + t + "&orderName=" + orderName + "&orderType=" + orderType + "&microTopicId=" + microTopicId;
+    $('.dataBody').empty();
+    $('.dataBody').append('<div class="NoResult"><img src="/mooc2-ans/images/loading.gif" style="width: 15px;margin-right: 10px;">正在加载，请稍后…</div>');
+    $(".pageDiv").remove();
+    setTimeout(function () {
+        reloadPage(url);
+    }, 100)
+}
+
+function searchPageByDataName() {
+    var enc = $("#enc").val();//
+    var courseid = $("#courseid").val();//
+    var classId = $("#clazzid").val();//
+    var ut =$("#ut").val();//
+    var rootId = $("#dataId").val();//
+    var dataId = $("#dataId").val();
+    var cpi = $("#cpi").val();//
+    var t = $("#t").val();//
+    var from = $("#from").val()//
+    var dataName = $.trim($(".dataSearch_input").val());//
+    var parent = $("#parent").val();
+    var flag = $("#flag").val();
+    var edit = $("#edit").val();
+    var openc = $("#openc").val();
+    var microTopicId = $("#microTopicId").val();
+    try {
+        dataName = encodeURIComponent(dataName);
+    }catch (e) {
+    }
+    var url = "/mooc2-ans/coursedata/search-stu?courseId=" + courseid + "&classId=" + classId + "&cpi=" + cpi + "&enc=" + enc + "&ut=" + ut + "&dataName=" + dataName +
+        "&dataId=" + dataId + "&parent=" + parent + "&flag=" + flag + "&edit=" + edit + "&openc=" + openc + "&t=" + t +"&rootId="+rootId+ "&microTopicId=" + microTopicId +"&from="+from;
+    reloadPage(url);
+}
+
+//跳转到首页
+function firstPage() {
+	var courseid = $("#courseid").val();
+	var classId = $("#clazzid").val();
+	var enc = $("#enc").val();
+	var ut =$("#ut").val();
+	var t = $("#t").val();
+	var microTopicId = $("#microTopicId").val();
+	var url = "/mooc2-ans/coursedata/stu-datalist?courseid="+courseid+"&clazzid="+classId+"&type=1&enc="+enc+"&ut="+ut+"&t="+t + "&microTopicId=" + microTopicId
+
+	reloadPage(url);
+}
+
+//局部刷新页面
+function reloadPage(jumpUrl) {
+	var suffix = "&isAjax=isAjax";
+	if(!jumpUrl) {
+		var url = window.location.href;
+        if(url.substring(url.length-1, url.length) === "#") {
+            url = url.substring (0, url.length-1) + suffix;
+        }else {
+            url = url + suffix;
+        }
+    }else {
+        url = jumpUrl+suffix;
+    }
+
+	var courseDataContent = $(".CourseDataContent");
+    jQuery.ajax({
+		type: "get",
+		url: url,
+		dataType: 'html',
+		async: false,
+		success: function (data) {
+			data = data.replace(/(^\s*)|(\s*$)/g, "");
+			courseDataContent.empty();
+			courseDataContent.append(data);
+			bulidPageNum();
+            buildJiaoCanInfo();
+            var isAccessibleCustomFid = $("#isAccessibleCustomFid").val();
+            if (isAccessibleCustomFid && isAccessibleCustomFid == "1") {
+                if (window.top && window.top.accessiblePlugs) {
+                    // window.top.accessiblePlugs.taggeriframe();
+                    window.top.accessiblePlugs.update();
+                }
+            }
+		}});
+}
+
+function showHideDiv(thisDiv) {
+    var parentElement = $(thisDiv).parent().parent().parent();
+    parentElement.find(".dataBody_read").show();
+    parentElement.find(".dataBody_down").show();
+    parentElement.find(".dataBody_size").show();
+    parentElement.find(".dataBody_time").show();
+	parentElement.find(".dataBody_creater").show();
+    parentElement.find('.operate').show();
+}
+
+function checkDownload(thisElement) {
+    var dataType = $(thisElement).parent().attr("type");
+
+    return !(dataType === 'url' || dataType === 'afolder' || dataType === 'book'
+		|| dataType === 'ZT' || dataType === 'svideo' || dataType === 'video'
+		|| dataType === 'zt_chapter' || dataType === 'periodical' || dataType === 'swift_course'
+		|| dataType === 'note' || dataType === 'topic');
+}
+
+function saveViewCount(dataId) {
+	var courseId = $('#courseid').val();
+	var classId = $("#classId").val();
+	var cpi = $("#cpi").val();
+
+	$.ajax({
+		type: "get",
+        url : "/mooc2-ans/coursedata/update/update-read-count?courseId="+courseId+"&clazzId="+classId+"&dataId="+dataId+"&cpi="+cpi+"&ut=s",
+		success: function (data) {},
+		error: function (data) {}
+	});
+}
+
+//资料点击事件, 校验可预览状态文件转码状态,再次转码校验处理
+function courseDataIsPreviewCheck(dataType, dataId, loadurl, objectId, flag, source,realCourseId) {
+    if (flag != '1' || !objectId) {
+        return;
+    }
+    $.ajax({
+        type : "post",
+        url : "/mooc2-ans/coursedata/course-data-isPreview",
+        data : {
+            "dataId" : dataId,
+            "objectId" : objectId,
+            "loadurl" : loadurl,
+            "dataType" : dataType,
+            "source" : source,
+            "courseId" : realCourseId
+        },
+        success : function(data) {
+        },
+        error : function() {
+        }
+    });
+}

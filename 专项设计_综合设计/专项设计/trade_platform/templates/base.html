@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>系统管理平台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <div class="brand">CORE SYSTEM</div>
+        <ul>
+            <li><a href="/">首页</a></li>
+            <li><a href="/customers">客户管理</a></li>
+            <li><a href="/members">成员管理</a></li>
+            <li><a href="/targets">目标管理</a></li>
+            <li><a href="/classifications">分类管理</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,119 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+*.egg
+*.whl
+
+# === Python Virtual Environments ===
+.venv/
+venv/
+env/
+.env/
+virtualenv/
+*/.venv/
+
+# === C/C++ / Qt ===
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.out
+*.app
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+Makefile
+*.pro.user
+*.pro.user.*
+.qtc_clangd/
+build-*/
+/build/
+
+# === IDE / Editors ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# === System Files ===
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# === OS X ===
+*.dmg
+*.app
+
+# === Jupyter ===
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# === Datasets (downloadable) ===
+cifar-10-batches-py/
+*/cifar-10-batches-py/
+
+# === Model Weights (too large, downloadable) ===
+*.pt
+*.pth
+*.h5
+*.pb
+*.onnx
+*.ckpt
+*.bin
+*.safetensors
+
+# === Video / Audio (too large) ===
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.flv
+*.wmv
+*.webm
+*.mp3
+*.wav
+*.flac
+*.ogg
+
+# === Archives (only exclude known package/dependency archives) ===
+# Keep project submission zips, exclude dependency tarballs
+*/.venv/Lib/site-packages/*.tar.gz
+
+# === Logs ===
+*.log
+wandb/
+
+# === Large Datasets (be careful - only exclude known download artifacts) ===
+# *.csv  # commented out - may include user's own data
+
+# === Package managers ===
+node_modules/
+bower_components/
+
+# === Temp files ===
+*.tmp
+*.temp
+*.bak
+*.cache

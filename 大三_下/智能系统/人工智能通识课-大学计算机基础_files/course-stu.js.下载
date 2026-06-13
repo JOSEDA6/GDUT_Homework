@@ -1,0 +1,851 @@
+var isOnPopState = false;
+function showCommitmentDiv() {
+    $("#showCommitmentId").show();
+    var isAccessibleCustomFid = $("#isAccessibleCustomFid").val();
+    if (isAccessibleCustomFid && isAccessibleCustomFid == "1") {
+        $("#learnCommit-pop-tabindex").focus();
+    }
+}
+
+$(document).ready(function () {
+	var v = $("#v").val();
+	if(v==3){
+		$(".backOld").attr("style", "display:none;");
+		$(".Header").find(".Logo img").attr("src","/mooc2-ans/images/pointerlogo.png")
+	}
+	
+    var notAgreeCommitment = $("#notAgreeCommitment").val();
+    if(notAgreeCommitment == "true") {
+        showCommitmentDiv();
+    }else {
+        showCourseNote();
+    }
+
+    $("#showCommitmentId").on("click",".agreeStart",function(){
+        showCommitmentIdFun();
+    })
+
+    var oldVersionFlag =  $("#oldVersionFlag").val();
+    if (oldVersionFlag != "true"){
+        $(".backOld").attr("style", "display:none;");
+    }
+    $(".nav-content li,.into_ItemBank").click(function () {
+        var isAccessibleCustomFid = $("#isAccessibleCustomFid").val();
+        if (isAccessibleCustomFid && isAccessibleCustomFid == "1") {
+            // 无障碍定制单位不走这个事件
+            return;
+        }
+        var url = $(this).find("a").attr("data-url");
+        var courseid = $("#courseid").val();
+        var courseBelongSchoolId = $("#courseBelongSchoolId").val();
+        var clazzid = $("#clazzid").val();
+        var cfid = $("#cfid").val();
+        var cpi = $("#cpi").val();
+        var bbsid = $("#bbsid").val();
+        var oldenc = $("#oldenc").val();
+        var enc = $("#enc").val();
+        var userId = $("#userId").val();
+        var cookieFid = $("#fid").val();
+        var chapterId = $("#chapterId").val();
+        var microTopicId = $("#microTopicId").val();
+        var topicModelId = $("#topicModelId").val();
+        var taskEngine = $("#taskEngine").val();
+        var courseApp = $("#courseApp").val();
+        var bbsUrlSwitch = $("#bbsUrlSwitch").val();
+        var openc = $("#openc").val();
+        var t = $("#t").val();
+        var shownewmark = $(this).attr("shownewmark");
+        var courseNavId = $(this).attr("data");
+        var learnSilverStartTime = $("#learnSilverStartTime").val();
+        var learnSilverEndTime = $("#learnSilverEndTime").val();
+
+        if (!url) {
+            return;
+        }
+        
+        if (url == "-") {
+            return;
+        }
+
+        enternavcancelmark(courseid,clazzid,cpi,shownewmark,courseNavId);
+
+        var module = $(this).attr("dataname");
+
+        if (url.indexOf("?") == -1) {
+            url += "?"
+        } else {
+            url += "&"
+        }
+
+	    if(module == "zy" || module == "zb_jm" || module == "bjexpand"){
+	    	url += "courseId=" + courseid + "&classId=" + clazzid + "&cpi=" + cpi + "&ut=s";
+	    }else if(module == "tl" && courseApp == 2 && bbsUrlSwitch == "false"){
+	    	url +=  "courseId="+courseid+"&clazzid="+clazzid+"&ut=s&enc="+oldenc+"&cpi="+cpi;
+	    }else if(module == "wk") {
+            url = ServerHost.mooc1Domain + url + "chapterId="+chapterId+"&courseId="+courseid+"&clazzid="+clazzid+"&cpi="+cpi+"&mooc2=1&enc="+oldenc+"&microTopicId="+microTopicId + "&topicModelId=" + topicModelId + "&taskEngine=" + taskEngine;
+        }else if(module == "microTL") {
+            url = ServerHost.mooc1Domain + url + "chapterId="+chapterId+"&courseId="+courseid+"&clazzid="+clazzid+"&cpi="+cpi+"&ut=s";
+        }else if(module == "WK_TJ") {
+            url = url + "courseid=" + courseid + "&cpi="+cpi+"&clazzid=" + clazzid + "&ut=s&topicId=" + microTopicId;
+        }else if(module == "LIBRARY_RE") {
+            var param = '';
+            var isPreviewModel = $("#isPreviewModel").val();
+            if(typeof isPreviewModel != "undefined" && isPreviewModel == "1") {
+                var sourceEnc = $("#sourceEnc").val();
+                var sourceCpi = $("#sourceCpi").val();
+                param = "courseid="+courseid+"&cpi="+sourceCpi+"&ut=t&microTopicId="+microTopicId+"&enc="+sourceEnc + "&isPreviewModel=1";
+            }else {
+                param = "courseid="+courseid+"&clazzid="+clazzid+"&cpi="+cpi+"&ut=s&microTopicId="+microTopicId;
+            }
+            //跳转到中间页，在中间页做重定向
+            url = "/mooc2-ans/coursetopic/library-embed?" + param;
+        } else if (module == "microTJZY") {
+            url = url + "courseid=" + courseid + "&clazzid=" + clazzid + "&cpi=" + cpi + "&ut=s&microTopicId=" + microTopicId;
+        } else if (module == "ai_workbench") {
+            //nothing
+        }else if(module == 'zc-wk') {
+            url += "courseId=" + courseid + "&classId=" + clazzid + "&cpi=" + cpi + "&ut=s&topicid=" + microTopicId ;
+        }else if(module == 'wk-preview') {
+            url += "courseId=" + courseid + "&knowledgeId=" + chapterId;
+        }else{
+	        url += "courseid=" + courseid + "&clazzid=" + clazzid + "&cpi=" + cpi + "&ut=s&t="+t;
+	    }
+
+        //加密
+        if(url.indexOf("?cpi=")==-1 && url.indexOf("&cpi=")==-1){
+            url += "&cpi=" +cpi;
+        }
+        if(url.indexOf("?t=")==-1 && url.indexOf("&t=")==-1){
+            url += "&t=" +t;
+        }
+        url += "&stuenc=" + enc;
+
+        try {
+            var isMicroNodeUrl = $(this).attr("isMicroNodeUrl");
+            if(typeof isMicroNodeUrl != "undefined" && isMicroNodeUrl) {
+                if(module == "zy") {
+                    url += "&topicId=" + microTopicId;
+                }else if(module == "ks") {
+                    url += "&topicid=" + microTopicId;
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+
+        try {
+            if((module == "ctj" || module == "zl") && typeof microTopicId != "undefined" && parseInt(microTopicId) > 0){
+                url += "&microTopicId=" + microTopicId;
+            }
+
+            var microCourseTopicOpenType = $("#microCourseTopicOpenType").val();
+            if(parseInt(microCourseTopicOpenType) == 1 && module == "tl"){
+                url += "&microClassDiscuss=1";
+            }
+        } catch (ex) {
+            console.log(ex);
+        }
+
+        if(module == "bjexpand" && typeof courseBelongSchoolId != "undefined"){
+            url += "&belongschoolid=" + courseBelongSchoolId
+        }
+
+        if (module == 'downzs') {
+            window.open(url, "_blank");
+            return;
+        }
+        
+
+        var pageHeader = $(this).attr("pageHeader");
+        if (module == 'hd') {
+            pageHeader = 0;
+            url += "&fid=" + cfid;
+        }
+        if (module == 'zj') {
+            pageHeader = 1;
+        }
+        if (module == 'tl') {
+            pageHeader = 2;
+            if(courseApp == 2 && bbsUrlSwitch == "false"){
+            	url += "&openc=" + openc + "&hideHead=true";
+            }else{
+            	url += "&bbsid=" + bbsid;
+            }
+            if (bbsUrlSwitch == "true") {
+                url += "&learnSilverStartTime=" + learnSilverStartTime + "&learnSilverEndTime=" + learnSilverEndTime ;
+            }
+
+     		if(url.indexOf("&enc=") == -1){
+        		url += "&enc=" + enc;
+        	}
+        
+        }
+        if (module == 'zl') {
+            pageHeader = 3;
+        }
+
+        if (module == 'microTL') {
+            pageHeader = 2;
+        }
+
+        if (module == 'wk') {
+            pageHeader = 18;
+        }
+
+        if (module == 'wk-preview') {
+            pageHeader = 23;
+        }
+
+        if (module == 'WK_TJ') {
+            pageHeader = 19;
+        }
+
+        if (module == "LIBRARY_RE") {
+            pageHeader = 20;
+        }
+
+        if (module == "microTJZY") {
+            pageHeader = 22;
+        }
+
+        if (module == 'ctj') {
+            pageHeader = 4;
+        }
+        if (module == 'zc') {
+            pageHeader = 5;
+            var examEnc = $("#examEnc").val();
+            url += "&enc="+examEnc+"&openc="+openc+"&type=1";
+        }
+
+        if(module == 'zc-wk') {
+            pageHeader = 5;
+        }
+
+        if (module == 'cj') {
+            pageHeader = 6;
+        }
+        if (module == 'zy') {
+            pageHeader = 8;
+          	var  workEnc = $("#workEnc").val();
+	    	url += "&enc="+workEnc;
+        }
+
+        if (module == 'ks') {
+            pageHeader = 9;
+            var examEnc = $("#examEnc").val();
+            url += "&enc="+examEnc+"&openc="+openc;
+        }
+        
+        if (module == 'expandread') {
+            var from = courseid + "_" + clazzid + "_" + userId + "_" + oldenc;
+        	url +=  "&fid=" + cookieFid + "&userId=" + userId + "&_from_=" + from;
+            pageHeader = 10;
+        }
+   
+        if (module == 'zsd') {
+            pageHeader = 12;
+        }
+   
+        if (module == 'zb') {
+        	var openc = $("#openc").val();
+            var moocDomainName = $("#moocDomainName").val();
+          	url +=  "&openc=" + openc + "&moocDomainName=" + moocDomainName;
+            pageHeader = 13;
+        }
+
+        if (module == "ai_workbench") {
+            pageHeader = 21;
+        }
+
+
+        if (module == "sxsx") {
+            pageHeader = 24;
+        }
+
+   
+        var openType = $(this).attr("openType");
+        
+        if (openType == 1) {
+        	url +=  "&enc=" + oldenc
+            window.open(url, "_blank");
+            return;
+        }
+        
+        var browserURL = document.URL;
+        if (browserURL.indexOf("&pageHeader=") != -1) {
+            browserURL = browserURL.replace(/(?![?&])(pageHeader)=(0|[1-9][0-9]*|-[1-9][0-9]*)/gi, "pageHeader=" + pageHeader);
+        } else {
+            browserURL += "&pageHeader=" + pageHeader;
+        }
+        if (!isOnPopState) {
+            history.pushState({pageHeader: pageHeader}, null, browserURL);
+        }
+        ContentLoader.createContentFrame('frame_content', url, 3,module);
+
+        try {
+            $('iframe').iFrameResize([{log : true}]);
+        } catch (e) {
+
+        }
+
+
+
+
+
+    });
+    
+    if($(".stuNavigationList").find("ul").find(".curNav").length == 0 && $(".stuNavigationList").find("li").length > 0){
+    	$(".stuNavigationList").find("li").eq(0).addClass("curNav");
+    }
+    
+    $(".curNav").click();
+
+    window.onpopstate = function (event) {
+        var className = "";
+        switch (event.state.pageHeader) {
+            case 0 :
+                className = 'hd';
+                break;
+            case 1 :
+                className = 'zj';
+                break;
+            case 2 :
+                className = 'tl';
+                break;
+            case 3 :
+                className = 'zl';
+                break;
+            case 4 :
+                className = 'ctj';
+                break;
+            case 5 :
+                className = 'zc';
+                break;
+            case 6 :
+                className = 'cj';
+                break;
+            case 8 :
+                className = 'zy';
+                break;
+            case 9 :
+                className = 'ks';
+                break;
+            default:
+                className = 'hd';
+        }
+        isOnPopState = true;
+        $('li[dataname="' + className + '"]').click();
+    }
+
+    stujudgenavifshowmark();
+});
+
+function enternavcancelmark(courseid,clazzid,cpi,shownewmark,courseNavId){
+    if( typeof courseid == "undefined" || typeof clazzid == "undefined" || typeof cpi == "undefined" ||
+        typeof shownewmark == "undefined" ||typeof courseNavId == "undefined" ||
+        courseNavId == 0 || shownewmark != 1 || courseid== 0 || clazzid ==0){
+        return;
+    }
+
+    $.ajax({
+        url : "/mooc2-ans/visit/enternavcancelmark",
+        type : "get",
+        data : {
+            "cpi" : cpi,
+            "courseNavId" : courseNavId,
+            "ut" : "s",
+            "clazzid" : clazzid,
+            "courseid" : courseid
+        },
+        dataType : "json",
+        success : function(data){
+            if(data.status){
+               $("#nav_"+courseNavId).find(".nvaNewMark").hide();
+               $("#nav_"+courseNavId).attr("shownewmark",0);
+            }
+        }
+    });
+
+}
+
+//判断导航是否展示标记
+function stujudgenavifshowmark(){
+
+    var courseNavIds = "";
+    $(".stuNavigationList").find("li").each(function(e){
+        var shownewmark = $(this).attr("shownewmark");
+        if(typeof shownewmark == "undefined" || shownewmark == 0 ){
+            return;
+        }
+        var courseNavId = $(this).attr("data");
+        if(typeof courseNavId == "undefined" || courseNavId == 0 ){
+            return;
+        }
+        if(courseNavIds == ""){
+            courseNavIds = courseNavId;
+        }else{
+            courseNavIds = courseNavIds + "," + courseNavId;
+        }
+    })
+
+    if(typeof courseNavIds == "undefined" || courseNavIds == ""){
+        return;
+    }
+
+    var courseid = $("#courseid").val();
+    var clazzid = $("#clazzid").val();
+    var cpi = $("#cpi").val();
+
+    $.ajax({
+        url : "/mooc2-ans/visit/judgenavshowmark",
+        type : "get",
+        data : {
+            "cpi" : cpi,
+            "courseNavIds" : courseNavIds,
+            "ut" : "s",
+            "clazzid" : clazzid,
+            "courseid" : courseid
+        },
+        dataType : "json",
+        success : function(data){
+            if(data.status){
+                var showDataArray = data.data;
+                for(var p in showDataArray){
+                    $("#nav_"+showDataArray[p]).find(".nvaNewMark").show();
+                }
+            }
+        }
+    });
+}
+
+function showCourseNote() {
+    var loadCourseNotice = $("#loadCourseNotice").val();
+    if(loadCourseNotice == 1){
+        getCourseNotices(0);
+    }
+}
+
+function iframeAutoResize(doc) {
+    var ifm = document.getElementById("frame_content");
+    var subWeb = "";
+    try {
+        subWeb = document.frames ? document.frames["frame_content"].document : ifm.contentDocument;
+    } catch (err) {
+        return false;
+    }
+    if (ifm != null && subWeb != null) {
+        $("#frame_content").height(subWeb.body.clientHeight + 100 + "px");
+    }
+}
+
+
+function secIframeAutoResize() {
+    iframeAutoResize(document.getElementById("frame_content"));
+}
+
+//window.setInterval("secIframeAutoResize()", 2000);
+
+
+/**
+ * tagcourseid 课程id占位符
+ * tagclazzid 班级id占位符
+ * tagcpi cip占位符
+ * tagfid fid占位符
+ * tagenc enc占位符
+ * tagopenc openc占位符
+ * tagut ut占位符
+ * **/
+var mooc1Domain = ServerHost.mooc1Domain;
+var moduleMap = new Map();
+
+moduleMap.set("old", mooc1Domain + "/mycourse/transfer?moocId=tagcourseid&ut=s&clazzid=tagclazzid&refer=");
+moduleMap.set("hd",mooc1Domain + "/mycourse/studentcourse?courseId=tagcourseid&clazzid=tagclazzid&cpi=tagcpi&openc=tagopenc&enc=tagenc&fromMiddle=1");
+moduleMap.set("zj", mooc1Domain + "/mycourse/studentcourse?courseId=tagcourseid&clazzid=tagclazzid&cpi=tagcpi&openc=tagopenc&enc=tagenc&fromMiddle=1");
+moduleMap.set("tl", mooc1Domain + "/bbscircle/grouptopic?courseId=tagcourseid&clazzid=tagclazzid&ut=s&enc=tagenc&cpi=tagcpi&openc=tagopenc");
+moduleMap.set("zl", mooc1Domain + "/coursedata?courseId=tagcourseid&classId=tagclazzid&type=1&ut=s&cpi=tagcpi&openc=tagopenc&enc=tagenc");
+
+moduleMap.set("ks", mooc1Domain + "/exam/test?courseId=tagcourseid&classId=tagclazzid&ut=s&cpi=tagcpi&openc=tagopenc&enc=tagenc");
+moduleMap.set("zy", mooc1Domain + "/work/getAllWork?courseId=tagcourseid&classId=tagclazzid&isdisplaytable=2&ut=s&cpi=tagcpi&openc=tagopenc&enc=tagenc");
+moduleMap.set("zc", mooc1Domain + "/mycourse/studentcourse?courseId=tagcourseid&clazzid=tagclazzid&cpi=tagcpi&openc=tagopenc&&enc=tagenc&fromMiddle=1");
+
+moduleMap.set("ctj", mooc1Domain + "/mycourse/studentcourse?courseId=tagcourseid&clazzid=tagclazzid&cpi=tagcpi&openc=tagopenc&&enc=tagenc&fromMiddle=1");
+moduleMap.set("cj", mooc1Domain + "/moocAnalysis/statistics-std?courseId=tagcourseid&classId=tagclazzid&ut=s&cpi=tagcpi&openc=tagopenc&&enc=tagenc");
+moduleMap.set("dy", mooc1Domain + "/exam/test?classId=tagclazzid&courseId=tagcourseid&ut=s&enc=tagenc&cpi=tagcpi&openc=tagopenc");
+
+moduleMap.set("expandread",mooc1Domain + "/mycourse/studentcourse?courseId=tagcourseid&clazzid=tagclazzid&cpi=tagcpi&openc=tagopenc&&enc=tagenc&fromMiddle=1");
+moduleMap.set("homepage",mooc1Domain + "/mycourse/studentcourse?courseId=tagcourseid&clazzid=tagclazzid&cpi=tagcpi&openc=tagopenc&&enc=tagenc&fromMiddle=1");
+function backToOld() {
+    var title = $(".curNav").find("a").attr("title");
+    var curNav = $(".curNav");
+
+    if (!curNav) {
+        return;
+    }
+
+    var module = curNav.attr("dataname");
+
+    if (!module) {
+        return;
+    }
+
+
+    var courseid = $("#courseid").val();
+    var clazzid = $("#clazzid").val();
+    var cpi = $("#cpi").val();
+    var fid = $("#fid").val();
+    var enc = $("#oldenc").val();
+    var openc = $("#openc").val();
+    var heardUt = $("#heardUt").val();
+    var moduleUrl = moduleMap.get(module);
+    
+    if(moduleUrl == "" || typeof(moduleUrl) == "undefined"){
+    	moduleUrl = moduleMap.get("homepage");
+    }
+
+    if(moduleUrl == "" || typeof(moduleUrl) == "undefined"){
+        return;
+    }
+
+    moduleUrl = moduleUrl.replace("tagcourseid", courseid)
+        .replace("tagclazzid", clazzid)
+        .replace("tagcpi", cpi)
+        .replace("tagfid", fid)
+        .replace("tagenc", enc)
+        .replace("tagopenc", openc);
+
+    moduleUrl = moduleMap.get("old").replace("tagcourseid", courseid).replace("tagclazzid", clazzid) + encodeURIComponent(moduleUrl);
+
+    window.location.href = moduleUrl;
+}
+
+
+function toCourseEvaluate(){
+    var courseEvaluateUrl = $("#courseEvaluateUrl").val();
+	window.open(courseEvaluateUrl);
+}
+
+$(".coursenoticepop").on("click",".closecoursepop",function(){
+	$(".maskDiv").hide();  
+})
+
+$("#showCommitmentId").on("click",".pCheckbox_label",function(){
+    if($(".agreeButton").is(':checked')) {
+        $(".agreeStart").show();
+        $(".agreeStartDisable").hide();
+    }else {
+        $(".agreeStart").hide();
+        $(".agreeStartDisable").show();
+    }
+})
+
+$(".coursenoticepop").on("click",".readclosecoursepop",function(){
+    updatePersonStatus();
+})
+
+function updatePersonStatus() {
+    var courseid = $("#courseid").val();
+    var clazzid = $("#clazzid").val();
+    var personid = $("#cpi").val();
+
+    $.ajax({
+        type : 'get',
+        url : '/mooc2-ans/mycourse/update-person-status',
+        data : {
+            'courseid':courseid,
+            'clazzid':clazzid,
+            'personid':personid
+        },
+        dataType : "json",
+            success : function(data) {
+            if(data && data.status){
+                $(".maskDiv").hide();
+                $("#loadCourseNotice").val(0);
+            }else{
+                alert("更新失败");
+            }
+        },
+        error : function() {
+            alert("更新失败");
+        }
+    });
+}
+
+
+function showCommitmentIdFun() {
+    if(!$(".agreeButton").is(':checked')) {
+        alert("请勾选我已阅读, 开始学习");
+        return;
+    }
+    var courseid = $("#courseid").val();
+    var clazzid = $("#clazzid").val();
+    var personid = $("#cpi").val();
+
+    $.ajax({
+        type : 'get',
+        url : '/mooc2-ans/mycourse/update-person-status',
+        data : {
+            'courseid':courseid,
+            'clazzid':clazzid,
+            'personid':personid,
+            "type": 1
+        },
+        dataType : "json",
+        success : function(data) {
+            if(data && data.status){
+                $("#showCommitmentId").hide();
+                $("#notAgreeCommitment").val("false");
+                showCourseNote();
+            }else{
+                alert("更新失败");
+            }
+        },
+        error : function() {
+            alert("更新失败");
+        }
+    })
+}
+
+function getCourseNotices(type){
+	var courseid = $("#courseid").val();
+	var clazzid = $("#clazzid").val();
+	var cpi = $("#cpi").val();
+	
+	$.ajax({
+		type : "get",
+		url : "/mooc2-ans/mycourse/coursenotices",
+		data : {
+			courseId : courseid,
+			clazzId : clazzid,
+			cpi : cpi
+		},
+		dataType : "html",
+		success : function(data){
+			$(".coursenoticepop").empty();
+			$(".coursenoticepop").html(data);
+	    	$(".maskDiv").hide();  
+	    	if(type == 0){
+	    		$(".closecoursepop").hide();
+	    		$(".bottom-div").show();
+	    	}else{
+	    		$(".bottom-div").hide();
+	    		$(".closecoursepop").show();
+	    	}
+	    	$(".coursenoticepop").show(); 
+	    	$(".course-details").niceScroll({
+	            cursorborder: "",
+	            cursorwidth: 8,
+	            cursorcolor: "#CAD5E6",
+	            boxzoom: false,
+	            autohidemode: false,
+	            railpadding: {top: 0, right: 2, left: 0, bottom: 0}
+	        });
+			
+		}
+		
+	})
+	
+}
+
+function outPreviewCourse(){
+
+    var courseid = $("#courseid").val();
+    var clazzid = $("#clazzid").val();
+    var cpi = $("#cpi").val();
+
+    $.ajax({
+        type : "get",
+        url : "/mooc2-ans/mycourse/outpreviewcourse",
+        data : {
+            courseid : courseid,
+            clazzid : clazzid,
+            cpi : cpi
+        },
+        dataType : "json",
+        success : function(data){
+            if(data.status){
+                window.close();
+            }else{
+                $.toast({
+                    content : data.msg,
+                    type : "notice",
+                    top : "300px"
+                })
+            }
+
+        }
+
+    })
+
+}
+
+function isAccessibleCustomFidClickNav(thisDiv) {
+    var isAccessibleCustomFid = $("#isAccessibleCustomFid").val();
+    if (isAccessibleCustomFid && isAccessibleCustomFid != "1") {
+        // 非无障碍定制单位不走这个事件
+        return;
+    }
+    var url = $(thisDiv).find("a").attr("data-url");
+    var courseid = $("#courseid").val();
+    var clazzid = $("#clazzid").val();
+    var cfid = $("#cfid").val();
+    var cpi = $("#cpi").val();
+    var bbsid = $("#bbsid").val();
+    var oldenc = $("#oldenc").val();
+    var enc = $("#enc").val();
+    var userId = $("#userId").val();
+    var cookieFid = $("#fid").val();
+    var courseApp = $("#courseApp").val();
+    var openc = $("#openc").val();
+    var t = $("#t").val();
+
+    if (!url) {
+        return;
+    }
+
+    if (url == "-") {
+        return;
+    }
+
+    var module = $(thisDiv).attr("dataname");
+
+    if (url.indexOf("?") == -1) {
+        url += "?"
+    } else {
+        url += "&"
+    }
+
+    if(module == "zy" || module == "zb_jm" || module == "bjexpand"){
+        url += "courseId=" + courseid + "&classId=" + clazzid + "&cpi=" + cpi + "&ut=s";
+    }else if(module == "tl" && courseApp == 2){
+        url +=  "courseId="+courseid+"&clazzid="+clazzid+"&ut=s&enc="+oldenc+"&cpi="+cpi;
+    }else{
+        url += "courseid=" + courseid + "&clazzid=" + clazzid + "&cpi=" + cpi + "&ut=s&t="+t;
+    }
+
+    if (module == 'downzs') {
+        window.open(url, "_blank");
+        return;
+    }
+
+
+    var pageHeader = 0;
+    if (module == 'hd') {
+        pageHeader = 0;
+        url += "&fid=" + cfid;
+    }
+    if (module == 'zj') {
+        pageHeader = 1;
+    }
+    if (module == 'tl') {
+        pageHeader = 2;
+        if(courseApp == 2){
+            url += "&openc=" + openc + "&hideHead=true";
+        }else{
+            url += "&bbsid=" + bbsid;
+        }
+
+        if(url.indexOf("&enc=") == -1){
+            url += "&enc=" + enc;
+        }
+
+    }
+    if (module == 'zl') {
+        pageHeader = 3;
+    }
+    if (module == 'ctj') {
+        pageHeader = 4;
+    }
+    if (module == 'zc') {
+        pageHeader = 5;
+        var examEnc = $("#examEnc").val();
+        url += "&enc="+examEnc+"&openc="+openc+"&type=1";
+    }
+    if (module == 'cj') {
+        pageHeader = 6;
+    }
+    if (module == 'zy') {
+        pageHeader = 8;
+        var  workEnc = $("#workEnc").val();
+        url += "&enc="+workEnc;
+    }
+
+    if (module == 'ks') {
+        pageHeader = 9;
+        var examEnc = $("#examEnc").val();
+        url += "&enc="+examEnc+"&openc="+openc;
+    }
+
+    if (module == 'expandread') {
+        var from = courseid + "_" + clazzid + "_" + userId + "_" + oldenc;
+        url +=  "&fid=" + cookieFid + "&userId=" + userId + "&_from_=" + from;
+        pageHeader = 10;
+    }
+
+    if (module == 'zsd') {
+        pageHeader = 12;
+    }
+
+    if (module == 'zb') {
+        var openc = $("#openc").val();
+        var moocDomainName = $("#moocDomainName").val();
+        url +=  "&openc=" + openc + "&moocDomainName=" + moocDomainName;
+        pageHeader = 13;
+    }
+
+
+    var openType = $(thisDiv).attr("openType");
+
+    if (openType == 1) {
+        url +=  "&enc=" + oldenc
+        window.open(url, "_blank");
+        return;
+    }
+
+    var browserURL = document.URL;
+    if (browserURL.indexOf("&pageHeader=") != -1) {
+        browserURL = browserURL.replace(/(?![?&])(pageHeader)=(0|[1-9][0-9]*|-[1-9][0-9]*)/gi, "pageHeader=" + pageHeader);
+    } else {
+        browserURL += "&pageHeader=" + pageHeader;
+    }
+    if (!isOnPopState) {
+        history.pushState({pageHeader: pageHeader}, null, browserURL);
+    }
+    ContentLoader.createContentFrame('frame_content', url, 1,module);
+
+    try {
+        tabCheckNextNav();
+        $('iframe').iFrameResize([{log : true}]);
+    } catch (e) {
+
+    }
+    var hideHead =$("hideGHead").val();
+    if (module=="hd"&&hideHead=='1'){
+      $('#frame_content-hd').css('inset', '0px 0px 0px 180px');
+    }
+}
+
+// 无障碍判断下一个可聚焦左侧菜单栏处理
+function tabCheckNextNav() {
+    try {
+        setTimeout(function () {
+            var iframeLast = $('iframe:last');
+            // 监听 iframe 内部页面的按键消息
+            iframeLast.contents().keydown(function(event) {
+                // 处理按键事件
+                // console.log('按下了键盘按键：', event.keyCode);
+                if ($(event.target).attr('data-read') === '已阅读完' && event.keyCode == 9 && !event.shiftKey) {
+                    if ($("#boxscrollleft .stuNavigationList ul li.curNav").index() < $("#boxscrollleft .stuNavigationList ul li").length - 1){
+                        $("#boxscrollleft .stuNavigationList ul li.curNav a").focus();
+                    }
+                    if ($("#boxscrollleft .stuNavigationList ul li.curNav").attr('dataname') === 'cj'){
+                        $("#boxscrollleft").focus();
+                    }
+                } else if ($(event.target).attr('data-read') === 'tabNextNav' && event.keyCode == 9 && !event.shiftKey) {
+                    tabCheckNextNav();
+                }
+            });
+        }, 1000);
+    } catch (e) {
+
+    }
+}

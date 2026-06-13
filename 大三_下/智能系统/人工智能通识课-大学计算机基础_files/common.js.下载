@@ -1,0 +1,16 @@
+// JavaScript Document
+//左侧导航选中js
+$(function () {
+    // $(".nav-content ul li").click(function () {
+    //     $(".nav-content ul li").removeClass("curNav")
+    //     $(this).addClass("curNav")
+    // })
+    $(".name").hover(function () {
+        $(".loginCon").show();
+        $(".loginCon").animate({"height": "98px", "opacity": "1"}, 400);
+    }, function () {
+        $(".loginCon").animate({"height": "0", "opacity": "0"}, 400);
+        $(".loginCon").hide();
+    })
+})
+

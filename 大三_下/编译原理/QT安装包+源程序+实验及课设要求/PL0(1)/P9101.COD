@@ -1,0 +1,22 @@
+=== COMPILE PL0 ===
+  0 PROGRAM MAIN; 
+  0 CONST A=10; 
+  1 VAR B,C; 
+  1 PROCEDURE P; 
+  1 BEGIN END; 
+  4 PROCEDURE S; 
+  4 BEGIN END; 
+  7 BEGIN 
+  8   B:=8; 
+ 10   READ(C); 
+ 12   WHILE C>0 DO 
+ 16     BEGIN 
+ 16       WRITE(B); 
+ 19       CALL S; 
+ 20     END; 
+ 21   CALL P; 
+ 22 END. 
+~~~ RUN PL0 ~~~
+? 0
+~~~ END PL0 ~~~
+

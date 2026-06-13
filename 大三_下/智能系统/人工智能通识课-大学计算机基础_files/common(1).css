@@ -1,0 +1,230 @@
+@charset "utf-8";
+/* CSS Document */
+*{margin:0; padding:0;}
+body{
+    font:12px/1.6 CXChineseQuote,-apple-system,BlinkMacSystemFont,Helvetica Neue,Segoe UI,Arial,PingFang SC,Hiragino Sans GB,Microsoft YaHei,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;
+    overflow-x: auto;-webkit-font-smoothing: antialiased;}
+/*mac下引号字体*/
+@font-face {
+    font-family: CXChineseQuote; /*自己取的名字*/
+    font-weight: 300;
+    src: local("PingFangSC-Light");
+    unicode-range: U+2018,U+2019,U+201c,U+201d /*指定这些中文符号使用PingFangSC-Light字体*/
+}
+
+@font-face {
+    font-family: CXChineseQuote;
+    font-weight: 400;
+    src: local("PingFangSC-Regular");
+    unicode-range: U+2018,U+2019,U+201c,U+201d
+}
+
+@font-face {
+    font-family: CXChineseQuote;
+    font-weight: 500;
+    src: local("PingFangSC-Medium");
+    unicode-range: U+2018,U+2019,U+201c,U+201d
+}
+
+@font-face {
+    font-family: CXChineseQuote;
+    font-weight: 600;
+    src: local("PingFangSC-Semibold");
+    unicode-range: U+2018,U+2019,U+201c,U+201d
+}
+table{width:100%; border:0; border-collapse:collapse; border-spacing:0;}
+table th{font-weight:normal;}
+ul,ol,li{list-style-type:none;}
+input,select,textarea{vertical-align:middle;border:none;border:0; outline:none; resize:none;}
+a{text-decoration:none;}
+strong{font-weight:normal;}
+b{font-weight:normal;}
+i{font-style:normal;}
+em{font-style:normal;}
+img{ border:0;}
+.fr{float:right}
+.fl{float:left}
+.clear{clear:both}
+.clearfix{zoom:1;overflow:hidden}
+
+/**滚动条样式**/
+::-webkit-scrollbar {width: 8px;height: 8px;}
+::-webkit-scrollbar-thumb {border-radius:8px;background-color: #DADFE5;}
+
+/*input-placeholder-color*/
+::-webkit-input-placeholder{ color: #E1E1E5; text-overflow: ellipsis;}
+:-moz-placeholder{ color: #E1E1E5 !important; text-overflow: ellipsis;}
+::-moz-placeholder{ color: #E1E1E5 !important; text-overflow: ellipsis;}
+:-ms-input-placeholder{ color: #E1E1E5 !important; text-overflow: ellipsis;}
+
+
+
+/*padding,margin值*/
+.pad30lr{padding:0 30px;}
+.padTop30{padding-top:30px;}
+.marginRight30{margin-right:30px;}
+
+/**********公共文字颜色*************/
+.textHidden{display: -webkit-box;-webkit-box-orient: vertical;-webkit-line-clamp: 2;overflow: hidden;}
+.fs14{font-size:14px;}
+.fs16{font-size:16px;}
+.fs18{font-size:18px;}
+/*color*/
+.colorDeep{ color:#181E33;}/*一级文字 深色*/
+.colorIn{ color:#646873;}/*二级文字 适中*/
+.colorShallow{ color:#A8A8B3;}/*三级文字 浅色*/
+.colorBlue_click{ color:#91a0b5;}/*可点击文字 蓝色*/
+.colorBlue{ color:#3A8BFF;}/*蓝色*/
+
+
+
+/************渐变按钮样式************/
+.jb_btn{display:inline-block;box-shadow: 0 3px 12px 0 rgba(39,125,255,0.30);color: #FFFFFF;text-align:center;line-height:36px;border-radius: 20px;}
+.jb_btn_92{width:92px;height:36px;background:url(/mooc2-ans/images/jb_btn_92.png) no-repeat 0 0;}
+.jb_btn_92:hover{background-position:0 -48px;}
+.jb_btn_92:active{background-position:left -96px}
+.jb_btn_92_disable{width:92px;height:36px;background:url(/mooc2-ans/images/jb_disable.png) no-repeat;box-shadow: 0 4px 11px 0 rgba(86,82,255,0.17);
+    border-radius: 20px;}
+.jb_btn_104{width:104px;height:36px;background:url(/mooc2-ans/images/jb_btn_104.png) no-repeat 0 0;}
+.jb_btn_104:hover{background-position:0 -48px;}
+.jb_btn_104:active{background-position:left -96px}
+.jb_btn_168{width:168px;height:44px;line-height:44px;background:url(/mooc2-ans/images/jb_btn_168.png) no-repeat 0 0;}
+.jb_btn_168:hover{background-position:0 -56px;}
+.jb_btn_168:active{background-position:left -112px}
+
+.btnBlue{border: 1px solid #94C1FF;border-radius: 20px;display:inline-block;width:90px;height:34px;text-align:center;line-height:34px;color: #3A8BFF;}
+.btnBlue:hover{background: #EAF0FF;}
+.btnBlue:active{background: #E4ECFF;}
+.btn_92_cancel:hover{background:none}
+.btn_92_cancel:active{background:none}
+.btn_104{width:102px;}
+.btn_92{width:90px;}
+
+
+ /*搜索css*/
+ .dataSearch{ width:200px; height:36px; border-radius:40px;position:relative}
+ .dataSearch_input{ width:122px; height:34px;font-size:14px; color:#131B26 ;  border:1px solid #E5E5E5;background:none;position:absolute;left:0;top:0;z-index:2;padding:0 62px 0 14px; border-radius:40px;font-family:microsoft Yahei}
+ .dataSearch_bnt{ width:18px; height:18px;background:url(/mooc2-ans/images/knowledgepoints/ico-search.png) no-repeat center; border:0 none; cursor:pointer;position:absolute;right:14px;top:8px;z-index:3;outline:none}
+ .dataSearch_input:hover{border: 1px solid #CCDEF3;}
+ .dataSearch_input:focus {outline:none;border: 1px solid #CCDEF3;border-radius: 40px;}
+ .dataSearch:hover .dataSearch_bnt{ opacity:0.7}
+ .dataSearch_dele{ width:14px; height:14px; background:url(/mooc2-ans/images/search_dele.png) no-repeat center/14px; display:block; position:absolute; right:40px; top:50%; margin-top:-7px; display:; z-index:3;}
+
+/*位置路径*/
+.RoutePosiiton{width:100%;line-height:40px;padding-top:10px;}
+.dataNum{ color:#A8A8B3; }
+.breadcrumb{ display:table;}
+.breadcrumb>li{ color:#a8a8b3; float:left;}
+.breadcrumb>li.active{ color:#A8A8B3;}
+.breadcrumb>li>a{ font-size:12px; color:#3A8BFF; display:block; max-width:100px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;}
+.breadcrumb>li>a:hover{ text-decoration:underline;}
+.breadcrumb>li+li { background:url(/mooc2-ans/images/breadcrumb.png) no-repeat 4px center; padding-left:14px;}
+
+
+.PlusIcon{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:middle;margin-top:-2px;}
+
+
+
+/*********Reset************/
+body{background: #f2f4f7;}
+.box{height:100%; position: relative;padding:30px;}
+.Header{width:100%;height:52px;background: #FFFFFF;box-shadow: 0 1px 12px 0 rgba(1,39,78,0.12);position: fixed;top:0;left:0;z-index:4;padding:0 30px;    box-sizing: border-box;}
+.Logo{min-width:138px;height:33px;margin-top:10px;}
+.headRight{padding-top:11px;}
+.backOld{display:inline-block;font-size: 14px;color: #91A0B5;background: #F7FAFC;border: 1px solid #E1EBFA;border-radius: 20px;width:98px;height:28px;text-align:center;line-height:28px;}
+.backOld:hover{background: rgba(247,250,252,0.7);color: rgba(145,160,181,0.7);}
+/*****登陆后*******/
+.loginAfter{margin-left:40px;}
+.headPic{display:inline-block;width:30px;height:30px;border-radius:50%;overflow:hidden;margin-right:10px;}
+.name{width:90px;position:relative;line-height:30px;height:34px}
+.name p{max-width:68px;white-space:nowrap;text-overflow:ellipsis;-o-text-overflow:ellipsis; overflow: hidden;float:left;color: #181E33;font-size:14px;}
+.name p:hover{color:#646873}
+.arrowDown{display:inline-block;width:12px;height:12px;background:url(/mooc2-ans/images/arrowDown.png) no-repeat;margin-left:5px;float:left;margin-top:10px; -webkit-transition: -webkit-transform .2s ease-in;
+    -moz-transition: -moz-transform .2s ease-in;
+    -o-transition: -o-transform .2s ease-in;}
+
+/*气泡小弹窗开始*/
+.Bubble_Popup{width:116px;background: #FFFFFF;box-shadow: 0 2px 12px 0 rgba(175,187,204,0.75);border-radius: 6px;position:absolute;padding:6px 0;display:none}
+.Bubble_Popup li{width:100%;height:48px;}
+.Bubble_Popup li a{display:block;width:100%;height:48px;line-height:48px;text-align:center;font-size: 14px;color: #646873;}
+.Bubble_Popup li a:hover{background: #F5F8FB;color: #3B90FF;}
+/*气泡小弹窗结束*/
+
+.loginCon li a i{display:inline-block;width:16px;height:16px;vertical-align:middle;margin-right:8px;margin-top:-1px;}
+.loginCon{position:absolute;left:-25px;top:34px;height:0}
+.loginCon li a i.user{background:url(/mooc2-ans/images/user.png) no-repeat}
+.loginCon li a i.eidt{background:url(/mooc2-ans/images/eidt.png) no-repeat}
+.loginCon li a:hover i.user{background:url(/mooc2-ans/images/user_hover.png) no-repeat}
+.loginCon li a:hover i.eidt{background:url(/mooc2-ans/images/eidt_hover.png) no-repeat}
+.name:hover .arrowDown{-moz-transform: rotate(180deg);-moz-transform-origin: 50% 30%;-webkit-transform: rotate(180deg);-webkit-transform-origin: 50% 30%;-o-transform: rotate(180deg);-o-transform-origin: 50% 30%;
+    transform: rotate(180deg);transform-origin: 50% 30%;    margin: 12px 0 0 8px;    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=2);}
+
+/******左侧开始*****/
+.nav_side{width:180px;height:100%;position: fixed;left: 0;top:0px; z-index: 2;background: #FFFFFF;box-shadow: 2px 0 10px 0 rgba(237,238,240,0.50);padding-top:52px;}
+
+.classDl{width:138px;margin:0 auto;margin-top:30px}
+.classDl dt{width:138px;height:78px;border-radius:6px;overflow:hidden;position:relative;}
+.classDl dt:hover{filter:alpha(Opacity=80);-moz-opacity:0.8;opacity: 0.8;}
+.classDl dt span{display:inline-block;width:100%;height:24px;background:rgba(0,0,0,0.2);position:absolute;bottom:0;left:0;text-align:center;line-height:24px;font-size:12px;color:#fff;}
+.classDl dt span .left_join{display:inline-block;width:10px;height:10px;vertical-align:middle;background:url(/mooc2-ans/images/left_join.png) no-repeat;margin-left:4px;margin-top:-2px;}
+.classDl dd{font-size: 16px;text-align:center;width:100%;line-height:21px;margin-top:12px;}
+.nav-content{margin-top:8px; padding-bottom:30px;}
+.nav-content ul{border-bottom:2px solid  #F8F8F8;padding:12px 0;}
+.nav-content ul:last-child{border-bottom:none}
+.nav-content ul li{width:100%;height:54px;text-align:center;}
+.nav-content ul li a{display:block;width:100%;height:54px;line-height:54px;font-size: 14px;color: #737886;}
+.nav-content ul li a:hover{background:#f6f9fd}
+.nav-content ul li a i{display:inline-block;width:24px;height:24px;vertical-align:middle;margin-right:6px;margin-top:-2px;}
+.nav-content ul li a i.hd{background:url(/mooc2-ans/images/hd.png) no-repeat}
+.nav-content ul li a i.ppt{background:url(/mooc2-ans/images/ppt.png) no-repeat}
+.nav-content ul li a i.zj{background:url(/mooc2-ans/images/zj.png) no-repeat}
+.nav-content ul li a i.zl{background:url(/mooc2-ans/images/zl.png) no-repeat}
+.nav-content ul li a i.tz{background:url(/mooc2-ans/images/tz.png) no-repeat}
+.nav-content ul li a i.tl{background:url(/mooc2-ans/images/tl.png) no-repeat}
+.nav-content ul li a i.zy{background:url(/mooc2-ans/images/zy.png) no-repeat}
+.nav-content ul li a i.ks{background:url(/mooc2-ans/images/ks.png) no-repeat}
+.nav-content ul li a i.tj{background:url(/mooc2-ans/images/tj.png) no-repeat}
+.nav-content ul li a i.gl{background:url(/mooc2-ans/images/gl.png) no-repeat}
+.nav-content ul li.curNav a{color: #3B90FF;background:#f6f9fd}
+.nav-content ul li.curNav a i.hd{background:url(/mooc2-ans/images/check_hd.png) no-repeat}
+.nav-content ul li.curNav a i.ppt{background:url(/mooc2-ans/images/check_ppt.png) no-repeat}
+.nav-content ul li.curNav a i.zj{background:url(/mooc2-ans/images/check_zj.png) no-repeat}
+.nav-content ul li.curNav a i.zl{background:url(/mooc2-ans/images/check_zl.png) no-repeat}
+.nav-content ul li.curNav a i.tz{background:url(/mooc2-ans/images/check_tz.png) no-repeat}
+.nav-content ul li.curNav a i.tl{background:url(/mooc2-ans/images/check_tl.png) no-repeat}
+.nav-content ul li.curNav a i.zy{background:url(/mooc2-ans/images/check_zy.png) no-repeat}
+.nav-content ul li.curNav a i.ks{background:url(/mooc2-ans/images/check_ks.png) no-repeat}
+.nav-content ul li.curNav a i.tj{background:url(/mooc2-ans/images/check_tj.png) no-repeat}
+.nav-content ul li.curNav a i.gl{background:url(/mooc2-ans/images/check_gl.png) no-repeat}
+
+/******右侧开始*****/
+.content{width:100%;min-width: 804px;border-radius: 6px;margin: 0;background: #f2f4f7; position: relative;left: 0;top:0px;}
+.content .main{margin: 82px 30px 30px 210px;min-width: 1040px; min-height:700px;background: #FFFFFF;box-shadow: 0 2px 10px 0 rgba(237,238,240,0.50);border-radius: 8px;}
+
+
+
+
+/***************分页****************/
+.pageDiv{text-align:center;padding:40px 0 0;}
+.pageDiv a{display:inline-block;width:24px;height:24px;border-radius:50%;text-align:center;line-height:24px;color: #91A0B5;font-size:12px;margin:0 2px;}
+.pageDiv a:hover{color: #3A8BFF;}
+.pageDiv .prvePage i{display:inline-block;width:9px;height:14px;background:url(/mooc2-ans/images/page_prve.png) no-repeat;vertical-align:middle}
+.pageDiv .nextPage i{display:inline-block;width:9px;height:14px;background:url(/mooc2-ans/images/page_next.png) no-repeat;vertical-align:middle}
+.pageDiv .prvePage:hover i{filter:alpha(Opacity=80);-moz-opacity:0.8;opacity: 0.8;}
+.pageDiv .nextPage:hover i{filter:alpha(Opacity=80);-moz-opacity:0.8;opacity: 0.8;}
+.pageDiv a.curPage{background:url(/mooc2-ans/images/pageBg.png) no-repeat;color:#fff;    box-shadow: 0 2px 6px 0 rgba(39,125,255,0.30);}
+.pageDiv .prve_page_disable i{display:inline-block;width:9px;height:14px;background:url(/mooc2-ans/images/disable_page_prve.png) no-repeat;vertical-align:middle}
+.pageDiv .next_page_disable i{display:inline-block;width:9px;height:14px;background:url(/mooc2-ans/images/disable_page_next.png) no-repeat;vertical-align:middle}
+
+
+/*开关与文字注解*/
+
+.mui-switch { width:38px; height:20px; position: relative;  display: inline-block;background: #D0D5DB;border-radius: 14px;-webkit-appearance: none; user-select: none; outline: none; }
+.mui-switch:before { content: ''; width:16px; height:16px; position: absolute; top: 50%; left:2px;top:2px; border-radius: 50%; background: #fff;; }
+.mui-switch:checked { border-color: #3A8BFF;; box-shadow: #09f 0 0 0 .16rem inset; background-color: #09f; }
+.mui-switch:checked:before { left:20px; }
+.mui-switch.mui-switch-animbg { transition: background-color ease 0.4s; }
+.mui-switch.mui-switch-animbg:before { transition: left 0.3s; }
+.mui-switch.mui-switch-animbg:checked { box-shadow: #dfdfdf 0 0 0 0 inset; background-color: #3A8BFF;; transition: border-color 0.4s, background-color ease 0.4s; }
+.mui-switch.mui-switch-animbg:checked:before { transition: left 0.3s; }
+.NoResult{ line-height:20px; font-size:14px; color:#A8A8B3; text-align:center; padding-top:200px;}

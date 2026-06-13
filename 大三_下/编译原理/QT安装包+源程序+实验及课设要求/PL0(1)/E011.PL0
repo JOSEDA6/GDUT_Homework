@@ -1,0 +1,8 @@
+PROGRAM EX01;
+VAR A;
+BEGIN
+  READ(A);
+  IF A>10  THEN A:=10;
+  A:=A/2+2*3;
+  WRITE(A)
+END.

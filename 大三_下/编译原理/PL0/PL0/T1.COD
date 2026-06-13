@@ -1,0 +1,35 @@
+=== COMPILE PL0 ===
+  0 PROGRAM P1; 
+  0 CONST I=5, B=20; C=1, D=2; 
+  1 VAR I; X,Y; 
+  1 PROCEDURE J; 
+  1 BEGIN 
+  3   X:=B 
+  4 END; 
+  6 PROCEDURE K; 
+  6 BEGIN 
+  8   Y:=C 
+  9 END; 
+ 11 BEGIN 
+ 12   I:=10; 
+ 14   WHILE I>0 DO 
+ 18     BEGIN 
+ 18       BEGIN 
+ 18       END; 
+ 18       WRITE(I); 
+ 21       I:=I-1 
+ 23     END 
+ 25 END. 
+~~~ RUN PL0 ~~~
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+~~~ END PL0 ~~~
+

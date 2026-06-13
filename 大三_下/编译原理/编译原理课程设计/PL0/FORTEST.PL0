@@ -1,0 +1,10 @@
+PROGRAM FORTEST;
+VAR I, SUM;
+BEGIN
+  SUM := 0;
+  
+  FOR I := 1 STEP 1 UNTIL 10 DO
+    SUM += I;
+  
+  WRITE(SUM); 
+END.

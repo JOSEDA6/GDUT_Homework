@@ -1,0 +1,30 @@
+function setCss() {
+    var a = [];
+    a.push(".back_to_top{display:none;width:40px;height:40px;right:20px;background: #FFFFFF;box-shadow: 0 1px 7px 0 rgba(198,204,217,0.58);position:fixed; bottom:44px;_position:absolute;_top:expression(eval(document.documentElement.scrollTop+document.documentElement.clientHeight-134));}\n"), a.push(".back_to_top a{display:inline-block;width:40px;height:40px;overflow:hidden;background:url(/mooc2-ans/images/backtotop2.png)-40px 0px no-repeat;}\n"),a.push(".back_to_top:hover .DownloadaHover{display:block; opacity:1; visibility:visible;-webkit-transition:opacity 0.3s 1s, visibility 0.3s 1s;transition:opacity 0.3s 1s, visibility 0.3s 1s;}\n"), a.push(".back_to_top a:hover{background-position:0px 0px}");
+    try {
+        var b = document.createStyleSheet();
+        b.cssText = a.join("");
+    } catch (c) {
+        var b = document.createElement("style");
+        b.type = "text/css", b.textContent = a.join(""), document.getElementsByTagName("HEAD").item(0).appendChild(b);
+    }
+}
+
+function createLink() {
+    var a = document.createElement("div");
+    a.tabIndex = "-1",a.id = "JS_back_to_top", a.className = "back_to_top", a.innerHTML = '<a href="#" title="" tabindex="-1"></a><div class="DownloadaHover"><i></i>返回顶部</div>', document.body.appendChild(a);
+}
+
+function GetPageScroll() {
+    var b, a;
+    return window.pageYOffset ? (a = window.pageYOffset, b = window.pageXOffset) : document.documentElement && document.documentElement.scrollTop ? (a = document.documentElement.scrollTop, b = document.documentElement.scrollLeft) : document.body && (a = document.body.scrollTop, b = document.body.scrollLeft), {
+        "x": b,
+        "y": a
+    };
+}
+
+function backToTop() {
+    GetPageScroll().y > 300 ? document.getElementById("JS_back_to_top").style.display = "block" : document.getElementById("JS_back_to_top").style.display = "none";
+}
+
+window.attachEvent ? window.attachEvent("onscroll", backToTop) : window.addEventListener("scroll", backToTop, !1), createLink(), setCss();

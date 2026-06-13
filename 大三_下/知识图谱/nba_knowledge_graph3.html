@@ -1,0 +1,321 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #222222;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u4e1c\u90e8\u8054\u76df", "label": "\u4e1c\u90e8\u8054\u76df", "shape": "dot", "title": "\u4e1c\u90e8\u8054\u76df"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u897f\u90e8\u8054\u76df", "label": "\u897f\u90e8\u8054\u76df", "shape": "dot", "title": "\u897f\u90e8\u8054\u76df"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u829d\u52a0\u54e5\u516c\u725b", "label": "\u829d\u52a0\u54e5\u516c\u725b", "shape": "dot", "title": "\u829d\u52a0\u54e5\u516c\u725b"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u5e95\u7279\u5f8b\u6d3b\u585e", "label": "\u5e95\u7279\u5f8b\u6d3b\u585e", "shape": "dot", "title": "\u5e95\u7279\u5f8b\u6d3b\u585e"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f", "label": "\u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f", "shape": "dot", "title": "\u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u7ebd\u7ea6\u5c3c\u514b\u65af", "label": "\u7ebd\u7ea6\u5c3c\u514b\u65af", "shape": "dot", "title": "\u7ebd\u7ea6\u5c3c\u514b\u65af"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u8d39\u57ce76\u4eba", "label": "\u8d39\u57ce76\u4eba", "shape": "dot", "title": "\u8d39\u57ce76\u4eba"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba", "label": "\u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba", "shape": "dot", "title": "\u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51", "label": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51", "shape": "dot", "title": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u591a\u4f26\u591a\u731b\u9f99", "label": "\u591a\u4f26\u591a\u731b\u9f99", "shape": "dot", "title": "\u591a\u4f26\u591a\u731b\u9f99"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u4e9a\u7279\u5170\u5927\u8001\u9e70", "label": "\u4e9a\u7279\u5170\u5927\u8001\u9e70", "shape": "dot", "title": "\u4e9a\u7279\u5170\u5927\u8001\u9e70"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u514b\u5229\u592b\u5170\u9a91\u58eb", "label": "\u514b\u5229\u592b\u5170\u9a91\u58eb", "shape": "dot", "title": "\u514b\u5229\u592b\u5170\u9a91\u58eb"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u5965\u5170\u591a\u9b54\u672f", "label": "\u5965\u5170\u591a\u9b54\u672f", "shape": "dot", "title": "\u5965\u5170\u591a\u9b54\u672f"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u590f\u6d1b\u7279\u9ec4\u8702", "label": "\u590f\u6d1b\u7279\u9ec4\u8702", "shape": "dot", "title": "\u590f\u6d1b\u7279\u9ec4\u8702"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u534e\u76db\u987f\u5947\u624d", "label": "\u534e\u76db\u987f\u5947\u624d", "shape": "dot", "title": "\u534e\u76db\u987f\u5947\u624d"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u8fc8\u963f\u5bc6\u70ed\u706b", "label": "\u8fc8\u963f\u5bc6\u70ed\u706b", "shape": "dot", "title": "\u8fc8\u963f\u5bc6\u70ed\u706b"}, {"font": {"color": "white"}, "group": "\u4e1c\u90e8\u8054\u76df", "id": "\u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005", "label": "\u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005", "shape": "dot", "title": "\u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u91d1\u5dde\u52c7\u58eb", "label": "\u91d1\u5dde\u52c7\u58eb", "shape": "dot", "title": "\u91d1\u5dde\u52c7\u58eb"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u4e39\u4f5b\u6398\u91d1", "label": "\u4e39\u4f5b\u6398\u91d1", "shape": "dot", "title": "\u4e39\u4f5b\u6398\u91d1"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u6d1b\u6749\u77f6\u5feb\u8239", "label": "\u6d1b\u6749\u77f6\u5feb\u8239", "shape": "dot", "title": "\u6d1b\u6749\u77f6\u5feb\u8239"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u6d1b\u6749\u77f6\u6e56\u4eba", "label": "\u6d1b\u6749\u77f6\u6e56\u4eba", "shape": "dot", "title": "\u6d1b\u6749\u77f6\u6e56\u4eba"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u83f2\u5c3c\u514b\u65af\u592a\u9633", "label": "\u83f2\u5c3c\u514b\u65af\u592a\u9633", "shape": "dot", "title": "\u83f2\u5c3c\u514b\u65af\u592a\u9633"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706", "label": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706", "shape": "dot", "title": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u4f11\u65af\u987f\u706b\u7bad", "label": "\u4f11\u65af\u987f\u706b\u7bad", "shape": "dot", "title": "\u4f11\u65af\u987f\u706b\u7bad"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b", "label": "\u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b", "shape": "dot", "title": "\u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u65b0\u5965\u5c14\u826f\u9e48\u9e55", "label": "\u65b0\u5965\u5c14\u826f\u9e48\u9e55", "shape": "dot", "title": "\u65b0\u5965\u5c14\u826f\u9e48\u9e55"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc", "label": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc", "shape": "dot", "title": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u6ce2\u7279\u5170\u5f00\u62d3\u8005", "label": "\u6ce2\u7279\u5170\u5f00\u62d3\u8005", "shape": "dot", "title": "\u6ce2\u7279\u5170\u5f00\u62d3\u8005"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u72b9\u4ed6\u7235\u58eb", "label": "\u72b9\u4ed6\u7235\u58eb", "shape": "dot", "title": "\u72b9\u4ed6\u7235\u58eb"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a", "label": "\u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a", "shape": "dot", "title": "\u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a"}, {"font": {"color": "white"}, "group": "\u897f\u90e8\u8054\u76df", "id": "\u8fbe\u62c9\u65af\u72ec\u884c\u4fa0", "label": "\u8fbe\u62c9\u65af\u72ec\u884c\u4fa0", "shape": "dot", "title": "\u8fbe\u62c9\u65af\u72ec\u884c\u4fa0"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u52d2\u5e03\u6717\u00b7\u8a79\u59c6\u65af", "label": "\u52d2\u5e03\u6717\u00b7\u8a79\u59c6\u65af", "shape": "dot", "title": "\u7403\u5458: \u52d2\u5e03\u6717\u00b7\u8a79\u59c6\u65af"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u51ef\u6587\u00b7\u675c\u5170\u7279", "label": "\u51ef\u6587\u00b7\u675c\u5170\u7279", "shape": "dot", "title": "\u7403\u5458: \u51ef\u6587\u00b7\u675c\u5170\u7279"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u65af\u8482\u82ac\u00b7\u5e93\u91cc", "label": "\u65af\u8482\u82ac\u00b7\u5e93\u91cc", "shape": "dot", "title": "\u7403\u5458: \u65af\u8482\u82ac\u00b7\u5e93\u91cc"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u79d1\u6000\u00b7\u4f26\u7eb3\u5fb7", "label": "\u79d1\u6000\u00b7\u4f26\u7eb3\u5fb7", "shape": "dot", "title": "\u7403\u5458: \u79d1\u6000\u00b7\u4f26\u7eb3\u5fb7"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u8a79\u59c6\u65af\u00b7\u54c8\u767b", "label": "\u8a79\u59c6\u65af\u00b7\u54c8\u767b", "shape": "dot", "title": "\u7403\u5458: \u8a79\u59c6\u65af\u00b7\u54c8\u767b"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u626c\u5c3c\u65af\u00b7\u963f\u5fb7\u6258\u6606\u535a", "label": "\u626c\u5c3c\u65af\u00b7\u963f\u5fb7\u6258\u6606\u535a", "shape": "dot", "title": "\u7403\u5458: \u626c\u5c3c\u65af\u00b7\u963f\u5fb7\u6258\u6606\u535a"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u5c3c\u53e4\u62c9\u00b7\u7ea6\u57fa\u5947", "label": "\u5c3c\u53e4\u62c9\u00b7\u7ea6\u57fa\u5947", "shape": "dot", "title": "\u7403\u5458: \u5c3c\u53e4\u62c9\u00b7\u7ea6\u57fa\u5947"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u4e54\u5c14\u00b7\u6069\u6bd4\u5fb7", "label": "\u4e54\u5c14\u00b7\u6069\u6bd4\u5fb7", "shape": "dot", "title": "\u7403\u5458: \u4e54\u5c14\u00b7\u6069\u6bd4\u5fb7"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u8fbe\u7c73\u6069\u00b7\u5229\u62c9\u5fb7", "label": "\u8fbe\u7c73\u6069\u00b7\u5229\u62c9\u5fb7", "shape": "dot", "title": "\u7403\u5458: \u8fbe\u7c73\u6069\u00b7\u5229\u62c9\u5fb7"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u5b89\u5fb7\u70c8\u00b7\u5fb7\u62c9\u8499\u5fb7", "label": "\u5b89\u5fb7\u70c8\u00b7\u5fb7\u62c9\u8499\u5fb7", "shape": "dot", "title": "\u7403\u5458: \u5b89\u5fb7\u70c8\u00b7\u5fb7\u62c9\u8499\u5fb7"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u51ef\u91cc\u00b7\u6b27\u6587", "label": "\u51ef\u91cc\u00b7\u6b27\u6587", "shape": "dot", "title": "\u7403\u5458: \u51ef\u91cc\u00b7\u6b27\u6587"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b", "label": "\u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b", "shape": "dot", "title": "\u7403\u5458: \u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u514b\u91cc\u65af\u00b7\u4fdd\u7f57", "label": "\u514b\u91cc\u65af\u00b7\u4fdd\u7f57", "shape": "dot", "title": "\u7403\u5458: \u514b\u91cc\u65af\u00b7\u4fdd\u7f57"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u5fb7\u9a6c\u5c14\u00b7\u5fb7\u7f57\u8d5e", "label": "\u5fb7\u9a6c\u5c14\u00b7\u5fb7\u7f57\u8d5e", "shape": "dot", "title": "\u7403\u5458: \u5fb7\u9a6c\u5c14\u00b7\u5fb7\u7f57\u8d5e"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u624e\u514b\u00b7\u62c9\u6587", "label": "\u624e\u514b\u00b7\u62c9\u6587", "shape": "dot", "title": "\u7403\u5458: \u624e\u514b\u00b7\u62c9\u6587"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u5409\u7c73\u00b7\u5df4\u7279\u52d2", "label": "\u5409\u7c73\u00b7\u5df4\u7279\u52d2", "shape": "dot", "title": "\u7403\u5458: \u5409\u7c73\u00b7\u5df4\u7279\u52d2"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u672c\u00b7\u897f\u8499\u65af", "label": "\u672c\u00b7\u897f\u8499\u65af", "shape": "dot", "title": "\u7403\u5458: \u672c\u00b7\u897f\u8499\u65af"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u5362\u5361\u00b7\u4e1c\u5951\u5947", "label": "\u5362\u5361\u00b7\u4e1c\u5951\u5947", "shape": "dot", "title": "\u7403\u5458: \u5362\u5361\u00b7\u4e1c\u5951\u5947"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u591a\u66fc\u5854\u65af\u00b7\u8428\u535a\u5c3c\u65af", "label": "\u591a\u66fc\u5854\u65af\u00b7\u8428\u535a\u5c3c\u65af", "shape": "dot", "title": "\u7403\u5458: \u591a\u66fc\u5854\u65af\u00b7\u8428\u535a\u5c3c\u65af"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u6770\u4f26\u00b7\u683c\u6797", "label": "\u6770\u4f26\u00b7\u683c\u6797", "shape": "dot", "title": "\u7403\u5458: \u6770\u4f26\u00b7\u683c\u6797"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u963f\u5c14\u4f69\u4f26\u00b7\u7533\u4eac", "label": "\u963f\u5c14\u4f69\u4f26\u00b7\u7533\u4eac", "shape": "dot", "title": "\u7403\u5458: \u963f\u5c14\u4f69\u4f26\u00b7\u7533\u4eac"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u5c0f\u51ef\u6587\u00b7\u6ce2\u7279", "label": "\u5c0f\u51ef\u6587\u00b7\u6ce2\u7279", "shape": "dot", "title": "\u7403\u5458: \u5c0f\u51ef\u6587\u00b7\u6ce2\u7279"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u6258\u9a6c\u65af", "label": "\u6258\u9a6c\u65af", "shape": "dot", "title": "\u7403\u5458: \u6258\u9a6c\u65af"}, {"font": {"color": "white"}, "group": "\u7403\u5458", "id": "\u62c9\u585e\u5c14", "label": "\u62c9\u585e\u5c14", "shape": "dot", "title": "\u7403\u5458: \u62c9\u585e\u5c14"}]);
+                  edges = new vis.DataSet([{"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u829d\u52a0\u54e5\u516c\u725b", "to": "\u829d\u52a0\u54e5\u516c\u725b"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u5e95\u7279\u5f8b\u6d3b\u585e", "to": "\u5e95\u7279\u5f8b\u6d3b\u585e"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f", "to": "\u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u7ebd\u7ea6\u5c3c\u514b\u65af", "to": "\u7ebd\u7ea6\u5c3c\u514b\u65af"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u8d39\u57ce76\u4eba", "to": "\u8d39\u57ce76\u4eba"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba", "to": "\u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u591a\u4f26\u591a\u731b\u9f99", "to": "\u591a\u4f26\u591a\u731b\u9f99"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u4e9a\u7279\u5170\u5927\u8001\u9e70", "to": "\u4e9a\u7279\u5170\u5927\u8001\u9e70"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u514b\u5229\u592b\u5170\u9a91\u58eb", "to": "\u514b\u5229\u592b\u5170\u9a91\u58eb"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u5965\u5170\u591a\u9b54\u672f", "to": "\u5965\u5170\u591a\u9b54\u672f"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u590f\u6d1b\u7279\u9ec4\u8702", "to": "\u590f\u6d1b\u7279\u9ec4\u8702"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u534e\u76db\u987f\u5947\u624d", "to": "\u534e\u76db\u987f\u5947\u624d"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u8fc8\u963f\u5bc6\u70ed\u706b", "to": "\u8fc8\u963f\u5bc6\u70ed\u706b"}, {"from": "\u4e1c\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005", "to": "\u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u91d1\u5dde\u52c7\u58eb", "to": "\u91d1\u5dde\u52c7\u58eb"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u4e39\u4f5b\u6398\u91d1", "to": "\u4e39\u4f5b\u6398\u91d1"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u6d1b\u6749\u77f6\u5feb\u8239", "to": "\u6d1b\u6749\u77f6\u5feb\u8239"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u6d1b\u6749\u77f6\u6e56\u4eba", "to": "\u6d1b\u6749\u77f6\u6e56\u4eba"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u83f2\u5c3c\u514b\u65af\u592a\u9633", "to": "\u83f2\u5c3c\u514b\u65af\u592a\u9633"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706", "to": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b", "to": "\u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u65b0\u5965\u5c14\u826f\u9e48\u9e55", "to": "\u65b0\u5965\u5c14\u826f\u9e48\u9e55"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc", "to": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u6ce2\u7279\u5170\u5f00\u62d3\u8005", "to": "\u6ce2\u7279\u5170\u5f00\u62d3\u8005"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u72b9\u4ed6\u7235\u58eb", "to": "\u72b9\u4ed6\u7235\u58eb"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a", "to": "\u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a"}, {"from": "\u897f\u90e8\u8054\u76df", "label": "\u5305\u542b", "title": "\u5305\u542b\u7403\u961f: \u8fbe\u62c9\u65af\u72ec\u884c\u4fa0", "to": "\u8fbe\u62c9\u65af\u72ec\u884c\u4fa0"}, {"from": "\u52d2\u5e03\u6717\u00b7\u8a79\u59c6\u65af", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u6d1b\u6749\u77f6\u6e56\u4eba", "to": "\u6d1b\u6749\u77f6\u6e56\u4eba"}, {"from": "\u52d2\u5e03\u6717\u00b7\u8a79\u59c6\u65af", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u8fc8\u963f\u5bc6\u70ed\u706b", "to": "\u8fc8\u963f\u5bc6\u70ed\u706b"}, {"from": "\u52d2\u5e03\u6717\u00b7\u8a79\u59c6\u65af", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u514b\u5229\u592b\u5170\u9a91\u58eb", "to": "\u514b\u5229\u592b\u5170\u9a91\u58eb"}, {"from": "\u51ef\u6587\u00b7\u675c\u5170\u7279", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u83f2\u5c3c\u514b\u65af\u592a\u9633", "to": "\u83f2\u5c3c\u514b\u65af\u592a\u9633"}, {"from": "\u51ef\u6587\u00b7\u675c\u5170\u7279", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u51ef\u6587\u00b7\u675c\u5170\u7279", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u91d1\u5dde\u52c7\u58eb", "to": "\u91d1\u5dde\u52c7\u58eb"}, {"from": "\u51ef\u6587\u00b7\u675c\u5170\u7279", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706", "to": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706"}, {"from": "\u65af\u8482\u82ac\u00b7\u5e93\u91cc", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u91d1\u5dde\u52c7\u58eb", "to": "\u91d1\u5dde\u52c7\u58eb"}, {"from": "\u79d1\u6000\u00b7\u4f26\u7eb3\u5fb7", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u6d1b\u6749\u77f6\u5feb\u8239", "to": "\u6d1b\u6749\u77f6\u5feb\u8239"}, {"from": "\u79d1\u6000\u00b7\u4f26\u7eb3\u5fb7", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a", "to": "\u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a"}, {"from": "\u8a79\u59c6\u65af\u00b7\u54c8\u767b", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u8d39\u57ce76\u4eba", "to": "\u8d39\u57ce76\u4eba"}, {"from": "\u8a79\u59c6\u65af\u00b7\u54c8\u767b", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u8a79\u59c6\u65af\u00b7\u54c8\u767b", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u626c\u5c3c\u65af\u00b7\u963f\u5fb7\u6258\u6606\u535a", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f", "to": "\u5bc6\u5c14\u6c83\u57fa\u96c4\u9e7f"}, {"from": "\u5c3c\u53e4\u62c9\u00b7\u7ea6\u57fa\u5947", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u4e39\u4f5b\u6398\u91d1", "to": "\u4e39\u4f5b\u6398\u91d1"}, {"from": "\u4e54\u5c14\u00b7\u6069\u6bd4\u5fb7", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u8d39\u57ce76\u4eba", "to": "\u8d39\u57ce76\u4eba"}, {"from": "\u8fbe\u7c73\u6069\u00b7\u5229\u62c9\u5fb7", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u6ce2\u7279\u5170\u5f00\u62d3\u8005", "to": "\u6ce2\u7279\u5170\u5f00\u62d3\u8005"}, {"from": "\u5b89\u5fb7\u70c8\u00b7\u5fb7\u62c9\u8499\u5fb7", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u829d\u52a0\u54e5\u516c\u725b", "to": "\u829d\u52a0\u54e5\u516c\u725b"}, {"from": "\u5b89\u5fb7\u70c8\u00b7\u5fb7\u62c9\u8499\u5fb7", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5e95\u7279\u5f8b\u6d3b\u585e", "to": "\u5e95\u7279\u5f8b\u6d3b\u585e"}, {"from": "\u5b89\u5fb7\u70c8\u00b7\u5fb7\u62c9\u8499\u5fb7", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u514b\u5229\u592b\u5170\u9a91\u58eb", "to": "\u514b\u5229\u592b\u5170\u9a91\u58eb"}, {"from": "\u51ef\u91cc\u00b7\u6b27\u6587", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u8fbe\u62c9\u65af\u72ec\u884c\u4fa0", "to": "\u8fbe\u62c9\u65af\u72ec\u884c\u4fa0"}, {"from": "\u51ef\u91cc\u00b7\u6b27\u6587", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u51ef\u91cc\u00b7\u6b27\u6587", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u514b\u5229\u592b\u5170\u9a91\u58eb", "to": "\u514b\u5229\u592b\u5170\u9a91\u58eb"}, {"from": "\u51ef\u91cc\u00b7\u6b27\u6587", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba", "to": "\u6ce2\u58eb\u987f\u51ef\u5c14\u7279\u4eba"}, {"from": "\u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u534e\u76db\u987f\u5947\u624d", "to": "\u534e\u76db\u987f\u5947\u624d"}, {"from": "\u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u6d1b\u6749\u77f6\u6e56\u4eba", "to": "\u6d1b\u6749\u77f6\u6e56\u4eba"}, {"from": "\u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u62c9\u585e\u5c14\u00b7\u5a01\u65af\u5e03\u9c81\u514b", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706", "to": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706"}, {"from": "\u514b\u91cc\u65af\u00b7\u4fdd\u7f57", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u83f2\u5c3c\u514b\u65af\u592a\u9633", "to": "\u83f2\u5c3c\u514b\u65af\u592a\u9633"}, {"from": "\u514b\u91cc\u65af\u00b7\u4fdd\u7f57", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u6d1b\u6749\u77f6\u5feb\u8239", "to": "\u6d1b\u6749\u77f6\u5feb\u8239"}, {"from": "\u514b\u91cc\u65af\u00b7\u4fdd\u7f57", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u514b\u91cc\u65af\u00b7\u4fdd\u7f57", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706", "to": "\u4fc4\u514b\u62c9\u8377\u9a6c\u57ce\u96f7\u9706"}, {"from": "\u5fb7\u9a6c\u5c14\u00b7\u5fb7\u7f57\u8d5e", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u829d\u52a0\u54e5\u516c\u725b", "to": "\u829d\u52a0\u54e5\u516c\u725b"}, {"from": "\u5fb7\u9a6c\u5c14\u00b7\u5fb7\u7f57\u8d5e", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a", "to": "\u5723\u5b89\u4e1c\u5c3c\u5965\u9a6c\u523a"}, {"from": "\u5fb7\u9a6c\u5c14\u00b7\u5fb7\u7f57\u8d5e", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u591a\u4f26\u591a\u731b\u9f99", "to": "\u591a\u4f26\u591a\u731b\u9f99"}, {"from": "\u624e\u514b\u00b7\u62c9\u6587", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u829d\u52a0\u54e5\u516c\u725b", "to": "\u829d\u52a0\u54e5\u516c\u725b"}, {"from": "\u624e\u514b\u00b7\u62c9\u6587", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc", "to": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc"}, {"from": "\u5409\u7c73\u00b7\u5df4\u7279\u52d2", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u8fc8\u963f\u5bc6\u70ed\u706b", "to": "\u8fc8\u963f\u5bc6\u70ed\u706b"}, {"from": "\u5409\u7c73\u00b7\u5df4\u7279\u52d2", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc", "to": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc"}, {"from": "\u5409\u7c73\u00b7\u5df4\u7279\u52d2", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u829d\u52a0\u54e5\u516c\u725b", "to": "\u829d\u52a0\u54e5\u516c\u725b"}, {"from": "\u672c\u00b7\u897f\u8499\u65af", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u672c\u00b7\u897f\u8499\u65af", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u8d39\u57ce76\u4eba", "to": "\u8d39\u57ce76\u4eba"}, {"from": "\u5362\u5361\u00b7\u4e1c\u5951\u5947", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u8fbe\u62c9\u65af\u72ec\u884c\u4fa0", "to": "\u8fbe\u62c9\u65af\u72ec\u884c\u4fa0"}, {"from": "\u591a\u66fc\u5854\u65af\u00b7\u8428\u535a\u5c3c\u65af", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b", "to": "\u8428\u514b\u62c9\u95e8\u6258\u56fd\u738b"}, {"from": "\u591a\u66fc\u5854\u65af\u00b7\u8428\u535a\u5c3c\u65af", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005", "to": "\u5370\u7b2c\u5b89\u7eb3\u6b65\u884c\u8005"}, {"from": "\u6770\u4f26\u00b7\u683c\u6797", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u963f\u5c14\u4f69\u4f26\u00b7\u7533\u4eac", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u5c0f\u51ef\u6587\u00b7\u6ce2\u7279", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u4f11\u65af\u987f\u706b\u7bad", "to": "\u4f11\u65af\u987f\u706b\u7bad"}, {"from": "\u5c0f\u51ef\u6587\u00b7\u6ce2\u7279", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u514b\u5229\u592b\u5170\u9a91\u58eb", "to": "\u514b\u5229\u592b\u5170\u9a91\u58eb"}, {"from": "\u6258\u9a6c\u65af", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u62c9\u585e\u5c14", "label": "\u73b0\u5f79\u4e8e", "title": "\u73b0\u5f79\u4e8e: \u5e03\u9c81\u514b\u6797\u7bee\u7f51", "to": "\u5e03\u9c81\u514b\u6797\u7bee\u7f51"}, {"from": "\u62c9\u585e\u5c14", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc", "to": "\u660e\u5c3c\u82cf\u8fbe\u68ee\u6797\u72fc"}, {"from": "\u62c9\u585e\u5c14", "label": "\u4ee5\u524d\u4e8e", "title": "\u4ee5\u524d\u4e8e: \u6d1b\u6749\u77f6\u6e56\u4eba", "to": "\u6d1b\u6749\u77f6\u6e56\u4eba"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {"nodes": {"font": {"size": 12}, "shadow": {"enabled": true, "size": 10}, "borderWidth": 1, "borderWidthSelected": 2}, "edges": {"arrowScaleFactor": 0.5, "color": {"inherit": false}, "smooth": false}, "physics": {"barnesHut": {"gravitationalConstant": -8000, "centralGravity": 0.3, "springLength": 150, "springConstant": 0.01, "damping": 0.09, "avoidOverlap": 0}, "minVelocity": 0.75, "maxVelocity": 50}};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

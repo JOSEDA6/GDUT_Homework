@@ -1,0 +1,248 @@
+以下是Transformer_Captioning_v3.2.ipynb代码
+# Setup cell.
+import time, os, json
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sources.gradient_check import eval_numerical_gradient, eval_numerical_gradient_array
+from sources.transformer_layers import *
+from sources.captioning_solver_transformer import CaptioningSolverTransformer
+from sources.transformer import CaptioningTransformer
+from sources.coco_utils import load_coco_data, sample_coco_minibatch, decode_captions
+from sources.image_utils import image_from_url
+
+%matplotlib inline
+plt.rcParams['figure.figsize'] = (10.0, 8.0) # Set default size of plots.
+plt.rcParams['image.interpolation'] = 'nearest'
+plt.rcParams['image.cmap'] = 'gray'
+
+%load_ext autoreload
+%autoreload 2
+
+def rel_error(x, y):
+    """ returns relative error """
+    return np.max(np.abs(x - y) / (np.maximum(1e-8, np.abs(x) + np.abs(y))))
+# Load COCO data from disk into a dictionary.
+from sources.coco_utils import *
+data = load_coco_data(pca_features=True)
+
+# Print out all the keys and values from the data dictionary.
+for k, v in data.items():
+    if type(v) == np.ndarray:
+        print(k, type(v), v.shape, v.dtype)
+    else:
+        print(k, type(v), len(v))
+torch.manual_seed(231)
+
+# Choose dimensions such that they are all unique for easier debugging:
+# Specifically, the following values correspond to N=1, H=2, T=3, E//H=4, and E=8.
+batch_size = 1
+sequence_length = 3
+embed_dim = 8
+attn = MultiHeadAttention(embed_dim, num_heads=2)
+attn.eval()
+
+# Self-attention.
+data = torch.randn(batch_size, sequence_length, embed_dim)
+self_attn_output = attn(query=data, key=data, value=data)
+
+# Masked self-attention.
+mask = torch.randn(sequence_length, sequence_length) < 0.5
+masked_self_attn_output = attn(query=data, key=data, value=data, attn_mask=mask)
+
+# Attention using two inputs.
+other_data = torch.randn(batch_size, sequence_length, embed_dim)
+attn_output = attn(query=data, key=other_data, value=other_data)
+
+expected_self_attn_output = np.asarray(
+    [[[-0.1030,  0.2090,  0.7481, -0.4116, -0.2772,  0.2357, -0.2740,
+          -0.2798],
+         [-0.1794,  0.1637,  0.6930, -0.3435, -0.2300,  0.2457, -0.2504,
+          -0.2323],
+         [-0.1861,  0.1567,  0.6677, -0.3078, -0.2731,  0.2302, -0.2714,
+          -0.2082]]]
+)
+
+expected_masked_self_attn_output = np.asarray(
+    [[[-0.1209,  0.1806,  0.8056, -0.4654, -0.2262,  0.2552, -0.2544,
+          -0.2812],
+         [-0.2374,  0.1183,  0.7423, -0.3777, -0.1460,  0.2716, -0.2213,
+          -0.2077],
+         [-0.0851,  0.2423,  0.7941, -0.3778, -0.4924,  0.1512, -0.4241,
+          -0.1740]]]
+)
+
+expected_attn_output = np.asarray(
+    [[[-0.1965,  0.0702,  0.5227, -0.1388, -0.3530,  0.2163, -0.2643,
+          -0.1902],
+         [-0.3592, -0.0899,  0.5836,  0.0029, -0.3643,  0.2667, -0.1973,
+          -0.1698],
+         [-0.3795,  0.0433,  0.5634, -0.0749, -0.4379,  0.2714, -0.2207,
+          -0.1980]]]
+)
+
+print('self_attn_output error: ', rel_error(expected_self_attn_output, self_attn_output.detach().numpy()))
+print('masked_self_attn_output error: ', rel_error(expected_masked_self_attn_output, masked_self_attn_output.detach().numpy()))
+print('attn_output error: ', rel_error(expected_attn_output, attn_output.detach().numpy()))
+torch.manual_seed(231)
+
+batch_size = 1
+sequence_length = 2
+embed_dim = 6
+data = torch.randn(batch_size, sequence_length, embed_dim)
+
+pos_encoder = PositionalEncoding(embed_dim)
+pos_encoder.eval()
+output = pos_encoder(data)
+
+expected_pe_output = np.asarray(
+    [[[-1.1106,  1.0014,  1.5280, -0.0778, -0.6964,  1.1455],
+         [ 0.8125, -0.4303,  0.4981,  0.7320,  1.1380,  1.5331]]]
+)
+
+print('pe_output error: ', rel_error(expected_pe_output, output.detach().numpy()))
+torch.manual_seed(231)
+np.random.seed(231)
+
+N, D, W = 4, 20, 30
+word_to_idx = {'<NULL>': 0, 'cat': 2, 'dog': 3}
+V = len(word_to_idx)
+T = 3
+
+transformer = CaptioningTransformer(
+    word_to_idx,
+    input_dim=D,
+    wordvec_dim=W,
+    num_heads=2,
+    num_blocks=2,
+    max_length=30
+)
+transformer.eval()
+
+# Set all model parameters to fixed values
+for p in transformer.parameters():
+    p.data = torch.tensor(np.linspace(-1.4, 1.3, num=p.numel()).reshape(*p.shape))
+
+features = torch.tensor(np.linspace(-1.5, 0.3, num=(N * D)).reshape(N, D))
+captions = torch.tensor((np.arange(N * T) % V).reshape(N, T))
+
+scores = transformer(features, captions)
+
+expected_scores = np.asarray(
+    [[[-17.2172,   4.7701,  26.7574],
+         [-17.2172,   4.7701,  26.7574],
+         [-17.2172,   4.7701,  26.7574]],
+
+        [[-17.2172,   4.7701,  26.7574],
+         [-17.2172,   4.7701,  26.7574],
+         [-17.2172,   4.7701,  26.7574]],
+
+        [[-17.2172,   4.7701,  26.7574],
+         [-17.2172,   4.7701,  26.7574],
+         [-17.2172,   4.7701,  26.7574]],
+
+        [[-17.2166,   4.7707,  26.7580],
+         [-17.2166,   4.7707,  26.7580],
+         [-17.2166,   4.7707,  26.7580]]]
+)
+print('scores error: ', rel_error(expected_scores, scores.detach().numpy()))
+torch.manual_seed(231)
+np.random.seed(231)
+
+data = load_coco_data(max_train=50)
+
+transformer = CaptioningTransformer(
+          word_to_idx=data['word_to_idx'],
+          input_dim=data['train_features'].shape[1],
+          wordvec_dim=256,
+          num_heads=2,
+          num_blocks=2,
+          max_length=30
+        )
+
+
+transformer_solver = CaptioningSolverTransformer(transformer, data, idx_to_word=data['idx_to_word'],
+           num_epochs=100,
+           batch_size=25,
+           learning_rate=0.001,
+           verbose=True, print_every=10,
+         )
+
+transformer_solver.train()
+
+# Plot the training losses.
+plt.plot(transformer_solver.loss_history)
+plt.xlabel('Iteration')
+plt.ylabel('Loss')
+plt.title('Training loss history')
+plt.show()
+print('Final loss: ', transformer_solver.loss_history[-1])
+# If you get an error, the URL just no longer exists, so don't worry!
+# You can re-sample as many times as you want.
+for split in ['train', 'val']:
+    minibatch = sample_coco_minibatch(data, split=split, batch_size=2)
+    gt_captions, features, urls = minibatch
+    gt_captions = decode_captions(gt_captions, data['idx_to_word'])
+
+    sample_captions = transformer.sample(features, max_length=30)
+    sample_captions = decode_captions(sample_captions, data['idx_to_word'])
+
+    for gt_caption, sample_caption, url in zip(gt_captions, sample_captions, urls):
+        img = image_from_url(url)
+        # Skip missing URLs.
+        if img is None: continue
+        plt.imshow(img)            
+        plt.title('%s\n%s\nGT:%s' % (split, sample_caption, gt_caption))
+        plt.axis('off')
+        plt.show()
+data = load_coco_data(max_train=50)
+
+# change the hyper-parameters below to change the architecture.
+transformer = CaptioningTransformer(
+          word_to_idx=data['word_to_idx'],
+          input_dim=data['train_features'].shape[1],
+          wordvec_dim=256,
+          num_heads=2,
+          num_blocks=2,
+          max_length=30
+        )
+
+# change the parameter
+transformer_solver = CaptioningSolverTransformer(transformer, data, idx_to_word=data['idx_to_word'],
+           num_epochs=100,
+           batch_size=25,
+           learning_rate=0.001,
+           verbose=True, print_every=10,
+         )
+
+transformer_solver.train()
+
+# Plot the training losses.
+plt.plot(transformer_solver.loss_history)
+plt.xlabel('Iteration')
+plt.ylabel('Loss')
+plt.title('Training loss history')
+plt.show()
+
+for split in ['train', 'val']:
+    minibatch = sample_coco_minibatch(data, split=split, batch_size=2)
+    gt_captions, features, urls = minibatch
+    gt_captions = decode_captions(gt_captions, data['idx_to_word'])
+
+    sample_captions = transformer.sample(features, max_length=30)
+    sample_captions = decode_captions(sample_captions, data['idx_to_word'])
+
+    for gt_caption, sample_caption, url in zip(gt_captions, sample_captions, urls):
+        img = image_from_url(url)
+        # Skip missing URLs.
+        if img is None: continue
+        plt.imshow(img)            
+        plt.title('%s\n%s\nGT:%s' % (split, sample_caption, gt_caption))
+        plt.axis('off')
+        plt.show()
+# TODO: Visualize the attention weight from your last trained model
+# *****START OF YOUR CODE *****
+
+pass
+
+# *****END OF YOUR CODE *****

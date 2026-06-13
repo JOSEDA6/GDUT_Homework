@@ -1,0 +1,12 @@
+PROGRAM COMPOUND;
+VAR A, B;
+BEGIN
+  A := 12;
+  B := 3;
+  
+  A /= 4;  
+  B *= A;  
+  
+  WRITE(A); 
+  WRITE(B); 
+END.

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 50px 0;">
+    <h1>欢迎进入核心管理系统</h1>
+    <p>Select a module from the navigation bar to begin.</p>
+    
+    <div style="margin-top: 40px; display: flex; justify-content: center; gap: 20px;">
+        <a href="/customers" class="btn">客户数据</a>
+        <a href="/targets" class="btn">目标监控</a>
+    </div>
+</div>
+{% endblock %}

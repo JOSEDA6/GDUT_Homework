@@ -1,0 +1,5 @@
+train: C:\Users\11834\Desktop\CARCOUNTER\yolov5\data\mydata\train.txt
+val: C:\Users\11834\Desktop\CARCOUNTER\yolov5\data\mydata\val.txt
+
+nc: 2
+names: ['person','car']

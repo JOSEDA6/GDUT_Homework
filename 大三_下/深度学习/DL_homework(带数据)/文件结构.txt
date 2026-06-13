@@ -1,0 +1,28 @@
+DL_homework(不带数据)/
+└── dl_homework/
+    ├── datasets_coco/
+    │   ├── coco_captioning/
+    │   │   ├── coco2014_captions.h5             
+    │   │   ├── coco2014_vocab.json
+    │   │   ├── train2014_images.txt
+    │   │   ├── train2014_urls.txt
+    │   │   ├── train2014_vgg16_fc7_pca.h5
+    │   │   ├── train2014_vgg16_fc7.h5
+    │   │   ├── val2014_images.txt
+    │   │   ├── val2014_urls.txt
+    │   │   ├── val2014_vgg16_fc7_pca.h5
+    │   │   └── val2014_vgg16_fc7.h5
+    │   ├── get_coco_captioning.sh
+    │   ├── get_datasets.sh
+    │   └── imagenet_val_25.npz
+    └── ex2.Transformer_v3.2/
+        ├── Transformer_Captioning_v3.2.ipynb ]
+        └── sources/
+            ├── _init__.py
+            ├── captioning_solver.py
+            ├── captioning_solver_transformer.py
+            ├── coco_utils.py                  
+            ├── gradient_check.py
+            ├── image_utils.py
+            ├── transformer_layers.py
+            └── transformer.py

@@ -1,0 +1,77 @@
+/**
+ * 镜像js中只需修改这个文件
+ */
+window.splitDomainConfig = function (num, domainHost) {
+    var arr = domainHost.split("."),
+        len = arr.length,
+        array = [];
+    if (num > len) return;
+    for (var i = 0; i < num; i++) {
+        array.push(arr[len - (i + 1)]);
+    }
+    return array.reverse().join('.');
+};
+
+window.getDomain = function () {
+    domainHost = window.location.host;
+    if (!domainHost) return;
+    var domain = domainHost.substring(domainHost.lastIndexOf(".") + 1, domainHost.length);
+    if (!domain) return;
+    return domainHost.substring(domainHost.indexOf(".") + 1);
+
+};
+
+
+window.getCookie = function (name) {
+    var oRegExp = new RegExp("(^|)" + name + "=([^;]*)(;|$)", "gi").exec(document.cookie), aCookie;
+    if (aCookie = oRegExp) {
+        var e = unescape(aCookie[2]);
+        if (e != null && typeof (e) != "undefined") {
+            return e;
+        }
+
+        return "";
+    }
+    return "";
+};
+
+window.ServerHost = {
+        moocDomain: window.location.protocol + "//" + window.location.host,
+    hostDomain: window.location.protocol + "//" + window.location.host,
+    mooc1Domain: "https://mooc1.chaoxing.com",
+    mobilelearnDomain: window.location.protocol + "//mobilelearn." + getDomain(),
+    purl: "https://p.ananas.chaoxing.com",
+    purlNew: "https://p.cldisk.com",
+    photoDomain: "http://photo.fanya.chaoxing.com",
+    appDomain: "http://apps.ananas.chaoxing.com",
+    cloudDomain: "http://cloud.ananas.chaoxing.com",
+    groupDomain: "https://groupweb.chaoxing.com",
+    uploadDomain: "https://mooc-upload-ans.chaoxing.com",
+    newCloudDomain: location.protocol + "//pan-yz.chaoxing.com",
+    xueyinonlineDomain: location.protocol + "//www.xueyinonline.com",
+    xueyinonlineChaoXingDomain: location.protocol + "//xueyinonline.chaoxing.com",
+    pananas: "http\:\/\/p.ananas\.chaoxing\.com\/star\/origin\/",
+    moocTJDomain: "https://fystat-ans.chaoxing.com",
+    noteydDomain: "https://noteyd.chaoxing.com",
+    stat2Domain: "https://stat2-ans.chaoxing.com",
+    importExportDomain: "https://mooc-import-export-ans.chaoxing.com",
+    robotLcDomain: "https://robot-lc.chaoxing.com",
+    moocResDomain: "//mooc-res2.chaoxing.com",
+    ananasDomain: "https://ananas.mooc1.chaoxing.com",
+    publicNetUploadDomain: window.location.protocol + "//mooc-upload-ans.chaoxing.com",
+    publicCloudDomain: window.location.protocol + "//pan-yz.chaoxing.com",
+
+    createScript: function (srcUrl) {
+
+        var oScript = document.createElement('script');
+        oScript.type = 'text/javascript';
+        oScript.src = srcUrl;
+        var oHead = document.getElementsByTagName("head")[0];
+        try {
+            oHead = oHead || document.documentElement;
+            oHead.appendChild(oScript);
+        } catch (e) {
+        }
+
+    }
+};

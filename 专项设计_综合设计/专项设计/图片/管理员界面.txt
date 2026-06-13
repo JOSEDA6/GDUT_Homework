@@ -1,0 +1,26 @@
+graph TD
+    Admin[管理员界面] --> Dashboard[数据看板]
+    Admin --> UserManage[用户管理]
+    Admin --> GoodsManage[商品管理]
+    Admin --> OrderManage[订单管理]
+    Admin --> ContentManage[内容审核]
+    Admin --> SystemConfig[系统配置]
+    
+    Dashboard --> Stats[核心数据统计]
+    
+    UserManage --> UserList[用户列表]
+    UserManage --> UserAuth[认证审核]
+    UserManage --> UserBan[封禁管理]
+    
+    GoodsManage --> GoodsList[商品列表]
+    GoodsManage --> GoodsAudit[商品审核]
+    GoodsManage --> Category[分类管理]
+    
+    OrderManage --> OrderList[订单监控]
+    OrderManage --> Dispute[纠纷处理]
+    
+    ContentManage --> InfoAudit[资讯审核]
+    ContentManage --> Report[举报处理]
+    
+    SystemConfig --> BasicConfig[基础配置]
+    SystemConfig --> AdminAuth[权限管理]

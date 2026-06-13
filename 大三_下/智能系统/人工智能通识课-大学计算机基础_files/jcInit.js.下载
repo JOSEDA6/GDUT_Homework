@@ -1,0 +1,65 @@
+function openUrl(url) {
+    window.open(url,"_blank")
+}
+
+function buildJiaoCanInfo() {
+    var rootId = $("#dataId").val();
+    var pages = $("#pages").val();
+    var courseId = $("#courseid").val();
+    var search = $("#search").val();
+    var jcCheckUrl = $("#jcCheckUrl").val();
+    var jcFolderUrl = $("#jcFolderUrl").val();
+
+    if((pages == 1 || pages == 0) && rootId == 0 && search != "true") {
+        $.ajax({
+            type:"get",
+            url : jcCheckUrl,
+            dataType:"json",
+            xhrFields: {withCredentials: true},
+            success:function(json){
+                if(typeof json.code != "undefined" && parseInt(json.code) === 1) {
+                    var isVisible = $(".dataHead").is(':visible');
+                    if(!isVisible) {
+                        $(".dataHead").show();
+                        $(".NoResult").hide();
+                    }
+
+                    var ut = $("#ut").val();
+                    if(ut === "t") {
+                        var html = "<ul class=\"dataBody_td\">\n" +
+                            "<li class=\"dataBody_disabled\"><input type=\"checkbox\" name=\"checkdelete\"></li>"+
+                            "\t<li class=\"dataBody_file\" onclick=\"openUrl('"+json.fanyaCoursePageUrl+"')\"><img src=\"/mooc2-ans/images/coursedata/shareFolder.png\"></li>\n" +
+                            "\t<li class=\"dataBody_name\">\n" +
+                            "\t\t<dl class=\"dataBody_text\" onclick=\"openUrl('"+json.fanyaCoursePageUrl+"')\">\n" +
+                            "\t\t\t<dt><div class=\"dataBody_ellipsis\"><a class=\"rename_title\" href=\"javascript:\">图书馆教参资源</a></div></dt>\n" +
+                            "\t\t</dl>\n" +
+                            "\t</li>\n" +
+                            "\t<li class=\"dataBody_read\"><div class=\"dataBody_read_select\"><a>-</a></div></li>\n" +
+                            "\t<li class=\"dataBody_down\"><div class=\"dataBody_read_select\"><a>-</a></div></li>\n" +
+                            "\t<li class=\"dataBody_size\"> - </li>\n" +
+                            "\t<li class=\"dataBody_creater\">-</li>\n" +
+                            "\t<li class=\"dataBody_time\">-</li>\n" +
+                            "</ul>";
+                        $(".dataBody").prepend(html);
+                    }else {
+                        var html2 = "<ul class=\"dataBody_td\">\n" +
+                            "\t<li class=\"dataBody_disabled\"><input type=\"checkbox\" name=\"checkdelete\"></li>\n" +
+                            "\t<li class=\"dataBody_file\" onclick=\"openUrl('"+json.fanyaCoursePageUrl+"')\"><img src=\"/mooc2-ans/images/coursedata/shareFolder.png\"></li>\n" +
+                            "\t<li class=\"dataBody_name_stu\">\n" +
+                            "\t\t<dl class=\"dataBody_text\" onclick=\"openUrl('"+json.fanyaCoursePageUrl+"')\">\n" +
+                            "\t\t\t<dt onclick=\"\">\n" +
+                            "\t\t\t\t<div class=\"dataBody_ellipsis\"><a class=\"rename_title\" href=\"javascript:\">图书馆教参资源</a></div>\n" +
+                            "\t\t\t</dt>\n" +
+                            "\t\t</dl>\n" +
+                            "\t</li>\n" +
+                            "\t<li class=\"dataBody_size_stu\"> - </li>\n" +
+                            "\t<li class=\"dataBody_creater_stu\">-</li>\n" +
+                            "\t<li class=\"dataBody_time_stu\">-</li>\n" +
+                            "</ul>"
+                        $(".dataBody").prepend(html2);
+                    }
+                }
+            }
+        });
+    }
+}

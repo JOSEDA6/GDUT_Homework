@@ -1,0 +1,473 @@
+var hoverSet = new Set();
+$(function(){
+	buildJiaoCanInfo();
+
+	$('#courseDataContent').on('click','.app_data_more',function(e){
+		if($(this).find(".app_morePop").is(":visible")) {
+			$(this).find(".app_morePop").stop(true,false).slideUp();
+			$(this).find(".up_icon").removeClass("down_icon")
+		}else{
+			$(this).find(".app_morePop").slideDown();
+			$(this).find(".up_icon").addClass("down_icon")
+		}
+	})
+
+	$('#courseDataContent').on('input','.dataSearch .dataSearch_input',function(){
+		var thisTime = $(this).val();
+		var dataSearchDeleteDiv = $(".dataSearch_dele");
+		if(thisTime === ""){
+			dataSearchDeleteDiv.hide()
+		} else{
+			dataSearchDeleteDiv.show()
+		}
+	});
+
+	$('#courseDataContent').on('click','.dataSearch_dele',function(){
+		$(".dataSearch_input").val("");
+		$(this).hide();
+		firstPage();
+	});
+
+	//搜索框支持enter键搜索
+	$('#courseDataContent').on('keydown','.dataSearch_input',function(e){
+		if (e.which === 13) {
+			verify();
+		}
+	});
+
+	//按下esc取消图片预览
+	$(window).keydown(function (event) {
+		if (event.keyCode == 27) {
+			$('.viewBtnWrap').fullFadeOut();
+		}
+	});
+
+	document.getElementById('viewZoomIn').onclick = function() {
+		viewer.zoom(0.1);
+	};
+	document.getElementById('viewZoomOut').onclick = function() {
+		viewer.zoom(-0.1);
+	};
+	document.getElementById('viewFlip').onclick = function() {
+		viewer.rotate(-90);
+	};
+	document.getElementById('viewClose').onclick = function() {
+		viewer.hide();
+		$('.viewBtnWrap').fullFadeOut();
+	};
+
+
+	//单选框
+	$('#courseDataContent').on('click','.dataBody_check',function(e){
+		if($(this).hasClass('dataBody_checked')){
+			$(this).removeClass('dataBody_checked');
+			$(this).parent().removeClass('dataBody_active');
+			$(this).find(":checkbox").prop("checked", false);
+		} else{
+			$(this).addClass('dataBody_checked');
+			$(this).parent().addClass('dataBody_active');
+			$(this).find(":checkbox").prop("checked", true);
+		}
+		checkTopBarList();
+		checkAllSelectButton();
+		setSelectTip();
+		if(getSelectColumnNum() > 1) {
+			$(this).parent().find('.operate').hide();
+		}
+	});
+
+	//单击全选框，选中所有的子元素
+	$('#courseDataContent').on('click','.dataHead_check',function(e){
+		var selectAllBoolean = false;
+		if($(this).hasClass('dataHead_checked')){
+			$(this).removeClass('dataHead_checked');
+			$(this).find(":checkbox").prop("checked", false);
+			selectAllBoolean = false;
+		} else{
+			$(this).addClass('dataHead_checked');
+			$(this).find(":checkbox").prop("checked", true);
+			selectAllBoolean = true;
+		}
+
+		$(".dataBody_check").each(function () {
+			if(selectAllBoolean) {
+				$(this).addClass('dataBody_checked');
+				$(this).parent().addClass('dataBody_active');
+				$(this).find(":checkbox").prop("checked", true);
+			}  else {
+				if($(this).hasClass('dataBody_checked')){
+					$(this).removeClass('dataBody_checked');
+					$(this).parent().removeClass('dataBody_active');
+					$(this).find(":checkbox").prop("checked", false);
+				}
+			}
+		});
+
+		checkTopBarList();
+		setSelectTip();
+	});
+
+	//hover
+	$('#courseDataContent').on('mouseenter','.dataCon .dataBody_td',function(ev){
+		ev.stopPropagation();
+		var checkElement = $(this).find(".dataBody_check");
+		if((!checkElement.hasClass('dataBody_checked') || (checkElement.hasClass('dataBody_checked') && getSelectColumnNum() <= 1))) {
+			$(this).find('.operate').show();
+		}
+	});
+
+	$('#courseDataContent').on('mouseleave','.dataCon .dataBody_td',function(ev){
+		ev.stopPropagation();
+		$(this).find('.operate').hide();
+		$(this).find('.operate_con').hide();
+		$(this).find('.dataLabel').hide();
+		$(this).removeAttr("z-index");
+//		$(this).find('.readNumber').hide()
+//		$(this).find('.colorBlue').removeClass('dataUnderline')
+	});
+
+	//tab
+	function tabBox(Id,tabTit,active,tabCon){
+		$(Id).on('click',tabTit,function(ev){
+			ev.stopPropagation();
+			$(this).addClass(active).siblings().removeClass(active)
+			var index = $(tabTit).index(this)
+			$(tabCon).children().eq(index).show().siblings().hide()
+		})
+	};
+	tabBox('#fanyaData','.readNumber_tab li','active','.readNumber_con')
+
+	$('#courseDataContent').on('click','.readNumber_already',function(){
+		var hWindow = $(document).innerHeight()
+		var hSelect = $(this).parents('.dataBody_read_select').find('.readNumber_con').offset().top-44
+		var topH = hSelect+360
+		console.log('top:'+hSelect)
+		if(topH>hWindow){
+			$(this).nextAll('.readNumber').css({'bottom':'30px','top':'auto'})
+		}else{
+			$(this).nextAll('.readNumber').css({'bottom':'auto','top':'30px'})
+		}
+	});
+
+	function topicScroll(ID){
+		$(ID).niceScroll({cursorborder:"",cursorwidth:8,cursorcolor:"#CAD5E6",boxzoom:false,autohidemode:true});
+		$(ID).getNiceScroll().resize(); //检测滚动条是否重置大小（当窗口改变大小时）
+	}
+
+	$('#courseDataContent').on('click','.dataMore',function(ev){
+		ev.stopPropagation();
+		var showHide = $(this).next();
+		if(showHide.is(':visible')){
+			showHide.hide()
+		} else{
+			showHide.slideDown(300)
+		}
+		var hWindow = $(document).innerHeight();
+		var hSelect = $(this).offset().top;
+		var topH = hSelect+240;
+		if(topH>hWindow){
+			$(this).next().css({'bottom':'30px','top':'auto'})
+		}else{
+			$(this).next().css({'bottom':'auto','top':'30px'})
+		}
+
+		topicScroll('#benkeScroll');
+		topicScroll('#danweiScroll');
+	});
+
+	$('#courseDataContent').on('click','.readNumber_down',function(){
+		var hWindow = $(document).innerHeight()
+		var hSelect = $(this).parents('.dataBody_read_select').find('.readNumber_list').offset().top-6
+		var topH = hSelect+360
+		console.log('top:'+hSelect)
+		if(topH>hWindow){
+			$(this).nextAll('.readNumber').css({'bottom':'30px','top':'auto'})
+		}else{
+			$(this).nextAll('.readNumber').css({'bottom':'auto','top':'30px'})
+		}
+		screllDown()
+	});
+
+	$('#popUpload_scroll').on('mouseenter','.bntHoverCon',function(){
+		var hSelect = $(this).parents('.popTable_td').position().top - $('.popTableBody').scrollTop();
+
+		if(142>=hSelect){
+			$(this).find('.bntHoverTips').css({'top':'auto','bottom':'-48px'});
+			$(this).find('.bntHoverTips i').addClass('active');
+		}else{
+			$(this).find('.bntHoverTips').css({'top':'-48px','bottom':'auto'});
+			$(this).find('.bntHoverTips i').removeClass('active');
+		}
+	});
+
+	/***********************弹窗***********************/
+	//创建多个下载框用于批量下载
+	function createIFrame(url) {
+		location.href = url;
+	}
+
+	// 批次大小
+	var batchSize = 1;
+	// 批次之间的延迟时间（毫秒）
+	var delay = 2000;
+
+	// 用于分批处理的函数
+	function processBatch(obj, currentIndex = 0) {
+		var end = Math.min(currentIndex + batchSize, obj.length); // 计算本次处理的结束位置
+		for (var i = currentIndex; i < end; i++) {
+			createIFrame(obj[i]);
+		}
+
+		// 如果还有剩余元素未处理，则设置延时继续处理下一批
+		if (end < obj.length) {
+			setTimeout(() => processBatch(obj, end), delay);
+		}
+	}
+
+	//批量下载pop
+	$('#courseDataContent').on('click','.popDownBnt',function(){
+		var dataId = [];
+		$(".dataBody_check").each(function () {
+			if($(this).hasClass('dataBody_checked')){
+				dataId.push($(this).find(":checkbox").prop("value"));
+			}
+		});
+
+		var courseId = $('#courseid').val();
+		var classId = $('#classId').val();
+		var ut = $('#ut').val();
+		if (dataId.length > 0) {
+			$.ajax({
+				type : "get",
+				url : "/mooc2-ans/coursedata/batchDownload",
+				data : {
+					"dataId" : dataId.join(),
+					"courseId" : courseId,
+					"classId" : classId,
+					"ut" : ut
+				},
+				success : function(data) {
+					var obj = JSON.parse(data);
+					// 开始处理第一批
+					processBatch(obj);
+				},
+				error : function(data) {
+					$.toast({type: 'failure', content: I18N_Config.courseDataToast47});
+				}
+			});
+		} else {
+			$.toast({type: 'failure', content: I18N_Config.courseDataToast48});
+		}
+	});
+
+	$('.popMove').on('change','.popWebsite_input',function(){
+		var thisTime = $(this).val();
+		if(thisTime == ""){
+			$(this).parent().find('.popWebsite_dele').hide()
+		} else{
+			$(this).parent().find('.popWebsite_dele').show()
+		}
+	})
+
+	//radio
+	$('.popSetupFile_radio').on('click',function(){
+		if($(this).hasClass("privateResource")) {
+			$(".popSetupFile_open").attr("style", "display:none");
+		} else if($(this).hasClass("teacherTeamResource")) {
+			$(".popSetupFile_open").attr("style", "display:none");
+		}else {
+			var currentDataId = $("#currentDataId").attr("value");
+			getFolderPermission(currentDataId, true);
+		}
+
+		$('.popSetupFile_radio').removeClass('popSetupFile_radioed');
+		$(this).addClass('popSetupFile_radioed');
+		$(this).find(":radio").prop("checked", true);
+	});
+
+	//排序
+	$('.popBookSort').hover(function(){
+		$(this).find('.popBookSort_con').show()
+	},function(){
+		$(this).find('.popBookSort_con').hide()
+	})
+	$('.popBookSort_con').children().click(function(){
+		$(this).addClass('active').siblings().removeClass('active')
+		$('.popBookSort_name').text($(this).text())
+		$(this).parent().hide()
+		var vlaue = $(this).attr('value')
+		console.log(vlaue)
+		$('.popBookSort_name').attr("value", $(this).attr("value"))
+	})
+
+	//关闭弹窗
+	$('.popMoveDele').click(function(){
+		closeDeleteWindow($(this));
+	});
+
+	//关闭弹窗
+	$('.popAddVidDele').click(function(){
+		$(this).parents('.maskDiv').removeClass('maskFadeOut')
+	});
+
+
+	//保存到show hide。。。
+	$('#popSave_scroll').on('click','.popMove_putit>.popMove_name',function(){
+		if($(this).next().is(':visible')){
+			$(this).next().slideUp(200)
+			$(this).parent().removeClass('popMove_open')
+		} else{
+			$(this).next().slideDown(200)
+			$(this).parent().addClass('popMove_open')
+		}
+		SaveScroll()
+	})
+
+	//弹窗内容选中或展开
+	$('#popSave_scroll,#popMove_scroll').on('click','.popMove_name',function(e){
+		// checkPopSaveShowHideDiv();
+
+		if ($(e.target).hasClass('clickName')) {
+			return;
+		}
+		$('.popMove_name').removeClass('popMove_active');
+		$(this).addClass('popMove_active');
+	});
+
+	//弹窗居中
+	function MoveFixed(){
+		$('.popMove').css({top:function(){
+				return ($(window).height()-$(this).height())/2;
+			},left:function(){
+				return ($(window).width()-$(this).width())/2;
+			}
+		});
+		window.onresize = function(){
+			$('.popMove').css({top:function(){
+					return ($(window).height()-$(this).height())/2;
+				},left:function(){
+					return ($(window).width()-$(this).width())/2;
+				}
+			});
+		}
+	}
+	MoveFixed()
+
+	//弹窗滚动条
+	function MoveScroll(){//移动到
+		$("#popMove_scroll").niceScroll({cursorborder:"",cursorwidth:8,cursorcolor:"#CAD5E6",boxzoom:false,autohidemode:true});
+		$("#popMove_scroll").getNiceScroll().resize(); //检测滚动条是否重置大小（当窗口改变大小时）
+	}
+	function SaveScroll(){//保存到
+		$("#popSave_scroll").niceScroll({cursorborder:"",cursorwidth:8,cursorcolor:"#CAD5E6",boxzoom:false,autohidemode:true});
+		$("#popSave_scroll").getNiceScroll().resize(); //检测滚动条是否重置大小（当窗口改变大小时）
+	}
+
+	var topicOnHover = $('span[topicid]');
+	topicOnHover.on('mouseover', function () {
+		var _this = $(this);
+		var topicId = _this.attr("topicid");
+		if (hoverSet.has(topicId)) {
+			return;
+		}
+		hoverSet.add(topicId);
+		var nameCacheAttribute = "fulltopicpath";
+		if (_this[0].hasAttribute(nameCacheAttribute)) {
+			appendHover(_this, topicId, _this.attr(nameCacheAttribute));
+			return;
+		}
+		var courseId = $('#courseid').val();
+		var classId = $('#clazzid').val();
+		var ut = $('#ut').val();
+		$.ajax({
+			type: "get",
+			url: "/mooc2-ans/coursedata/get-full-topic-path",
+			dataType: "json",
+			data: {
+				"courseId": courseId,
+				"classId": classId,
+				"topicId": topicId,
+				"ut": ut
+			},
+			success: function (data) {
+				if (data.status) {
+					var topicName = data.msg || "";
+					appendHover(_this, topicId, topicName);
+					_this.attr("fulltopicpath", topicName);
+				}
+			}
+		});
+	});
+
+	topicOnHover.on('mouseout', function () {
+		var topicId = $(this).attr("topicId")
+		hoverSet.delete(topicId);
+		$('[id^="hover_"]').remove();
+	});
+
+});
+function appendHover(_this, topicId, topicName) {
+	var hoverId = "hover_" + topicId;
+	var hoverHtml = "<div id='" + hoverId + "' class='selectDivHover' style='display: none'><div class='selectDivHoverArrow'></div>无父级节点</div>"
+	if (topicName) {
+		hoverHtml = "<div id='" + hoverId + "' class='selectDivHover' style='display: none'><div class='selectDivHoverArrow'></div>父级节点：<div></div></div>"
+	}
+	if (!hoverSet.has(topicId)) {
+		return;
+	}
+	$("body").append(hoverHtml);
+	var hoverElement = $("#" + hoverId);
+	hoverElement.children("div").eq(1).text(unescapeHTML(topicName));
+	var rect = _this[0].getBoundingClientRect();
+	var top = rect.bottom + 10;
+	var hoverOuterWidth = hoverElement.outerWidth(true);
+	var left = rect.left + (rect.width - hoverOuterWidth) / 2;
+	if (left < 0) {
+		left = 0;
+		var offset = hoverOuterWidth - (rect.right - rect.width / 2 - 7);
+		if (offset < 0) {
+			offset = 14;
+		}
+		hoverElement.find(".selectDivHoverArrow").css("left", offset + "px");
+	}
+	if (left + hoverOuterWidth > window.innerWidth) {
+		left = window.innerWidth - hoverOuterWidth;
+		var offset = rect.right - rect.width / 2 - 7 - left;
+		if (offset > hoverOuterWidth) {
+			offset = hoverOuterWidth - 14;
+		}
+		hoverElement.find(".selectDivHoverArrow").css("left", offset + "px");
+	} else {
+		hoverElement.find(".selectDivHoverArrow").css("left", (rect.left - left + rect.width/ 2 - 7) + "px");
+	}
+	var maxWidth = hoverElement.parent()[0].getBoundingClientRect().width;
+	if (maxWidth && maxWidth > 0) {
+		hoverElement.css("max-width", maxWidth);
+	}
+	if (top + hoverElement.outerHeight(true) <= window.innerHeight) {
+		hoverElement.css({
+			top: top + "px",
+			left: left + "px"
+		})
+	} else {
+		hoverElement.find("div").first().removeClass("selectDivHoverArrow");
+		hoverElement.find("div").first().addClass("selectDivHoverArrowBottom");
+		hoverElement.css({
+			bottom: window.innerHeight - rect.top + 10 + "px",
+			left: left + "px"
+		})
+	}
+	hoverElement.show();
+}
+
+function unescapeHTML(str) {
+	return str.replace(/&lt;|&gt;|&amp;|&quot;|&#39;/g, function (a) {
+		return {
+			'&lt;': '<',
+			'&gt;': '>',
+			'&amp;': '&',
+			'&quot;': '"',
+			'&#39;': "'"
+		}[a];
+	});
+}

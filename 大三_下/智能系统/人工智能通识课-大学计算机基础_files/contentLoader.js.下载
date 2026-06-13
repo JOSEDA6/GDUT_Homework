@@ -1,0 +1,321 @@
+var maindiv = {
+    top: 82,
+    right: 30,
+    bottom: 30,
+    left: 210
+};
+
+function isSameUrl(oldUrl, url) {
+    if (!oldUrl || !url) {
+        return false;
+    }
+
+    var split1 = oldUrl.split("?");
+    var split2 = url.split("?");
+    if (!!split1[1] && !!split2[1] && split1[1] == split2[1]) {
+        return true;
+    }
+
+    return false;
+}
+
+var ContentLoader = {
+    frameid: null,
+    contentFrame: null,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    isShow: false,
+    mmap: new Map(),
+    curVmFrameid: null,
+
+    /**
+     * 页面初始化或本页面框架调整布局时执行，记录content的各边距
+     */
+    setMargin: function (top, right, bottom, left) {
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
+        this.left = left;
+    },
+    /**
+     * 创建内层页面
+     */
+    createContentFrame: function (frameid, url, openType, module) {
+        // 新建内层页面时，清理旧的内容
+        if (!!module) {
+            frameid = frameid + "-" + module;
+        }
+        this.frameid = frameid;
+
+        if (!!this.contentFrame) {
+            $(this.contentFrame).hide();
+        }
+        switch (openType) {
+            case 1: // 单个iframe 绝对定位方式打开
+                this.createWithTransparencyIframe(url);
+                break;
+            case 2: // 多个iframe 绝对定位方式打开
+                var moduleIframe = this.mmap.get(module);
+                var oldUrl;
+                if (!moduleIframe) {
+                    moduleIframe = this.createWithTransparencyIframe(url);
+                    this.mmap.set(module, moduleIframe);
+                } else {
+                    oldUrl = moduleIframe.src;
+
+                    this.contentFrame = moduleIframe;
+
+                    if (!isSameUrl(oldUrl, url)) {
+
+                        this.contentFrame.src = url;
+                    }
+                }
+
+                break;
+            case 3:
+
+                //关闭之前的再打开新的
+                try{
+                    if(this.curVmFrameid != null &&  this.curVmFrameid !=""){
+                        $("#" + this.curVmFrameid).remove();
+                    }
+                    this.curVmFrameid = frameid;
+                }catch (e){
+
+                }
+                this.createWithTransparencyIframe(url);
+                break;
+            default:
+                this.createWithTransparencyIframe(url);
+
+        }
+
+        if (!!this.contentFrame) {
+            resizeFrame();
+            $(this.contentFrame).show();
+        }
+    },
+    createWithTransparencyIframe: function (url) {
+        var frame = document.createElement("iframe");
+        frame.id = this.frameid;
+        frame.name = this.frameid;
+        frame.frameborder = "0";
+        frame.border = "0";
+        frame.width = $(window).width() - this.left - this.right;
+        frame.height = $(window).height() - this.top - this.bottom;
+        frame.setAttribute("allowFullScreen", true);
+        frame.setAttribute("allow", "camera;microphone;clipboard-write");
+        frame.onload = iframeAutoResize(this);
+        //frame.scrolling="no";
+        frame.allowtransparency = "true";
+        var css = {
+            position: 'absolute',
+            top: this.top + 'px',
+            right: this.right + 'px',
+            bottom: this.bottom + 'px',
+            left: this.left + 'px',
+            border: '0px'
+        };
+
+        $(frame).css(css);
+        frame.src = url;
+        this.contentFrame = frame;
+        document.body.appendChild(frame);
+        return frame;
+    },
+    openTransparencyDialog: function (toggle) {
+        if (!this.contentFrame) return;
+        var f = $(this.contentFrame);
+        $('.nav_side').css("z-index", "-2");
+        $('.box').css("z-index", "-1");
+        f.attr("scrolling", "no");
+        $('body').css("overflow", "hidden");
+        // setTimeout(function () {
+        //
+        // }, 300);
+        this.contentFrame.contentWindow.postMessage('{"cmd":1001,"width":' + $(window).width() + ',"height":' + $(window).height() + ',"toggle":' + toggle + ',"top":' + this.top + ', "right":' + this.right + ', "bottom":' + this.bottom + ', "left":' + this.left + '}', "*");
+        f.width($(window).width());
+        f.height($(window).height());
+        f.css("top", "0px");
+        f.css("left", "0px");
+        this.isShow = true;
+    },
+    closeTransparencyDialog: function (toggle) {
+        if (!this.contentFrame) return;
+        var f = $(this.contentFrame);
+        f.attr("scrolling", "yes");
+        $('body').css("overflow", "auto");
+        $('.nav_side').css("z-index", "1");
+        $('.box').css("z-index", "2");
+        this.contentFrame.contentWindow.postMessage('{"cmd":1001,"width":' + $(window).width() + ',"height":' + $(window).height() + ',"toggle":' + toggle + ',"top":0, "right":0, "bottom":0, "left":0}', "*");
+        f.width($(window).width() - this.left - this.right);
+        f.height($(window).height() - this.top - this.bottom);
+        f.css("top", this.top + "px");
+        f.css("left", this.left + "px");
+        this.isShow = false;
+    },
+    postMessage: function (message, targetOrigin, transfer) {
+        console.log(message);
+        this.contentFrame.contentWindow.postMessage(message, targetOrigin, transfer);
+    }
+};
+
+function resizeFrame() {
+    try {
+        var f = $(ContentLoader.contentFrame);
+        if (ContentLoader.isShow) {//弹出状态
+            f.width($(window).width());
+            f.height($(window).height());
+        } else {
+            f.width($(window).width() - ContentLoader.left);
+            f.height($(window).height() - ContentLoader.top);
+        }
+        if (ContentLoader.frameid == 'frame_content-tj' && ContentLoader.isShow) {
+            ContentLoader.postMessage('{"cmd":' + PMCMD.resize.reply.cmd + ', "width":' + f.width() + ',"height":' + f.height() + '}', "*");
+        }
+
+    } catch (e) {
+    }
+}
+
+$(function () {
+    // 监听窗口大小变化 ，及时对内层iframe做调整
+    window.addEventListener("resize", resizeFrame);
+    // 添加message事件监听, 处理遮罩弹框居中问题
+    // 所有消息以json数据结构传输，{cmd:1,...}， cmd=1 代表遮罩弹框居中处理
+    window.addEventListener("message", function (event) {
+        console.log(event.data);
+        var msgJson = JSON.parse(event.data);
+        if (msgJson == null) {
+            return;
+        }
+        switch (msgJson.cmd) {
+            case PMCMD.popupMask.cmd: //弹出遮罩层, {cmd:1, toggle:true}
+                if (!msgJson.toggle) {
+                    ContentLoader.closeTransparencyDialog(msgJson.toggle);
+                } else {
+                    ContentLoader.openTransparencyDialog(msgJson.toggle);
+                }
+                break;
+            case PMCMD.setNoticeRed.cmd://设置通知红点，{cmd:2, toggle:true}
+                setNoticeRed(msgJson.toggle);
+                break;
+            case PMCMD.isNoticeRed.cmd://获取通知红点的状态，{cmd:3}
+                var isred = isNoticeRed();
+                ContentLoader.postMessage('{"cmd":' + PMCMD.isNoticeRed.reply.cmd + ', "red":' + isred + '}', "*");
+                break;
+            case PMCMD.openUrl.cmd://在iframe中打开地址，{'cmd':4, 'url':'http://www.baidu.com''}
+                if (!!msgJson.url) {
+                    ContentLoader.createContentFrame('frame_content', msgJson.url, 2, msgJson.module);
+                    var moduleli = $("li[dataname='" + msgJson.module + "']");
+                    if (moduleli.length > 0) {
+                        $(".nav-content ul li").removeClass("curNav");
+                        moduleli.addClass("curNav");
+                    }
+
+                }
+                break;
+            case PMCMD.openDownload.cmd://打开下载中心
+                window.top.loadDownload(1);
+                break;
+            case PMCMD.changClazz.cmd://切班级协议，{'cmd':5, 'clazzid':'12345'}
+                if (!msgJson.clazzid || !msgJson.clazzid == 0) {
+                    ContentLoader.postMessage('{"cmd":' + PMCMD.changClazz.reply.cmd + ', "status":' + false + ', "msg": "无效的班级id"}', "*");
+                    break;
+                }
+                setParam("clazzid", msgJson.clazzid);
+                // 设置成功会发消息通知
+                break;
+        }
+
+    });
+
+    var left = 180;
+    var top = 52
+    try {
+        if($("#isChaoxingClient").val() == "true"){
+            left = 130;
+        }
+        if($("#hideHead").val() == 1){
+            top = 0;
+        }
+    }catch (ex) {
+        console.log(ex)
+    }
+
+    ContentLoader.setMargin(top, 0, 0, left);
+});
+(function (W) {
+    if (typeof W.PMCMD != 'undefined') {
+        return;
+    }
+
+    function PMCMD() {
+    }
+
+    PMCMD.prototype.popupMask = {
+        cmd: 1,
+        name: 'popupMask',
+        module: '模块名称',
+        desc: '弹出/隐藏遮罩层',
+        toggle: '布尔类型的值',
+        reply: {
+            cmd: 1001, top: 'top', right: 'right', bottom: 'bottom', left: 'left'
+        }
+    };
+
+    PMCMD.prototype.setNoticeRed = {
+        cmd: 2,
+        name: 'setNoticeRed',
+        desc: '设置通知红点',
+        toggle: '布尔类型的值'
+    };
+    PMCMD.prototype.isNoticeRed = {
+        cmd: 3,
+        name: 'isNoticeRed',
+        desc: '获取通知红点的状态',
+        reply: {
+            cmd: 1003,
+            desc: '接收查询红点的状态结果的事件',
+            red: '是否有红点，布尔类型的值'
+        }
+    };
+    PMCMD.prototype.openUrl = {
+        cmd: 4,
+        name: 'openUrl',
+        module: '模块名称',
+        desc: 'iframe页面打开指定的地址',
+        url: '要打开的地址'
+    };
+    PMCMD.prototype.changClazz = {
+        cmd: 5,
+        name: 'changClazz',
+        desc: '切换班级',
+        clazzid: '班级id,整数类型',
+        reply: {
+            cmd: 1005,
+            desc: '通知操作放切换班级是否成功',
+            status: '是否成功，布尔类型的值',
+            msg: '失败信息'
+        }
+    };
+    PMCMD.prototype.resize = {
+        cmd: 6,
+        name: 'reszie',
+        desc: '窗口大小改版',
+        reply: {
+            cmd: 1006
+        }
+    };
+    PMCMD.prototype.openDownload = {
+        cmd: 7,
+        name: 'openDownload',
+        desc: '打开下载中心',
+        reply: {
+            cmd: 1007
+        }
+    };
+    W['PMCMD'] = new PMCMD();
+})(window)
